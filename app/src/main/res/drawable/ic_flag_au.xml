@@ -1,0 +1,54 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="12dp"
+    android:viewportWidth="16.0"
+    android:viewportHeight="12.0">
+    <path
+        android:fillColor="#41479B"
+        android:pathData="M0.0,0.0 h16.0 v12.0 h-16.0 Z" />
+    <path
+        android:fillColor="#C4C4C4"
+        android:pathData="M0.0,0.0 h10.0 v8.0 h-10.0 Z" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.5"
+        android:pathData="M11 -1.33331L-1 9.33335" />
+    <path
+        android:strokeColor="#DC251C"
+        android:strokeWidth="0.75"
+        android:pathData="M11 -1.33331L-1 9.33335" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.5"
+        android:pathData="M-1 -1.33331L11 9.33335" />
+    <path
+        android:strokeColor="#DC251C"
+        android:strokeWidth="0.75"
+        android:pathData="M-1 -1.33331L11 9.33335" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3"
+        android:pathData="M5 0V4M5 4V8M5 4H0M5 4H10" />
+    <path
+        android:strokeColor="#DC251C"
+        android:strokeWidth="2"
+        android:pathData="M5 0V4M5 4V8M5 4H0M5 4H10" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12.0,2.5 a0.5,0.5 0 1,0 1.0,0 a0.5,0.5 0 1,0 -1.0,0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M11.0,5.5 a0.5,0.5 0 1,0 1.0,0 a0.5,0.5 0 1,0 -1.0,0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M14.0,4.5 a0.5,0.5 0 1,0 1.0,0 a0.5,0.5 0 1,0 -1.0,0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M13.0,6.5 a0.5,0.5 0 1,0 1.0,0 a0.5,0.5 0 1,0 -1.0,0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12.0,9.5 a0.5,0.5 0 1,0 1.0,0 a0.5,0.5 0 1,0 -1.0,0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M5.00391 8.24219L5.32915 9.00018L6.1097 8.78841L5.73473 9.52183L6.38281 10.0157L5.58998 10.1723L5.61758 11L5.00391 10.4618L4.39024 11L4.41783 10.1723L3.625 10.0157L4.27309 9.52183L3.89811 8.78841L4.67866 9.00018L5.00391 8.24219Z" />
+</vector>
