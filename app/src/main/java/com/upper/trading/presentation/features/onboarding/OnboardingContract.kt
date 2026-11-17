@@ -1,5 +1,6 @@
 package com.upper.trading.presentation.features.onboarding
 
+import com.upper.trading.domain.model.IntroSlide
 import com.upper.trading.presentation.base.UiEffect
 import com.upper.trading.presentation.base.UiIntent
 import com.upper.trading.presentation.base.UiState
@@ -7,12 +8,13 @@ import com.upper.trading.presentation.base.UiState
 data class OnboardingState(
     val currentSlideIndex: Int = 0,
     val isDarkTheme: Boolean = false,
+    val introSlides: List<IntroSlide> = emptyList(),
 ): UiState
 
 sealed interface OnboardingIntent : UiIntent {
     data class SelectTheme(val isDark: Boolean) : OnboardingIntent
     data object ConfirmTheme: OnboardingIntent
-    data class SwipeSlideIntro(val page: Int) : OnboardingIntent
+    data class UpdateSlideIntro(val page: Int) : OnboardingIntent
     data object SkipOnboarding: OnboardingIntent
     data object CompleteIntro : OnboardingIntent
 }

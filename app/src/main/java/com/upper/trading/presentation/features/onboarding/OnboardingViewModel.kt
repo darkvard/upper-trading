@@ -1,24 +1,46 @@
 package com.upper.trading.presentation.features.onboarding
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.upper.trading.domain.usecase.onboarding.CompleteOnboardingUseCase
+import com.upper.trading.domain.usecase.onboarding.GetDarkModeUseCase
+import com.upper.trading.domain.usecase.onboarding.GetIntroSlidesUseCase
 import com.upper.trading.domain.usecase.onboarding.SetDarkModeUseCase
 import com.upper.trading.presentation.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val completeOnboardingUseCase: CompleteOnboardingUseCase,
-    private val setDarkModeUseCase: SetDarkModeUseCase
+    private val setDarkModeUseCase: SetDarkModeUseCase,
+    private val getDarkModeUseCase: GetDarkModeUseCase,
+    private val getIntroSlidesUseCase: GetIntroSlidesUseCase,
 ) : BaseViewModel<OnboardingState, OnboardingIntent, OnboardingEffect>(
     initialState = OnboardingState()
 ) {
 
+    init {
+        loadIntroSlides()
+        observeTheme()
+    }
+
+    private fun loadIntroSlides() {
+        setState { copy(introSlides = getIntroSlidesUseCase()) }
+    }
+
+    private fun observeTheme() {
+        getDarkModeUseCase().onEach { isDark ->
+            setState { copy(isDarkTheme = isDark) }
+        }.launchIn(viewModelScope)
+    }
+
     override fun onIntent(intent: OnboardingIntent) {
         when (intent) {
-            is OnboardingIntent.SwipeSlideIntro -> {
+            is OnboardingIntent.UpdateSlideIntro -> {
                 setState { copy(currentSlideIndex = intent.page) }
             }
 
@@ -29,6 +51,7 @@ class OnboardingViewModel @Inject constructor(
             OnboardingIntent.SkipOnboarding -> {
                 viewModelScope.launch {
                     setDarkModeUseCase(currentState.isDarkTheme)
+                    completeOnboardingUseCase()
                     sendEffect(OnboardingEffect.NavigateHomeTrade)
                 }
             }
@@ -48,7 +71,4 @@ class OnboardingViewModel @Inject constructor(
             }
         }
     }
-
-
-
 }
