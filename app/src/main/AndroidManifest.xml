@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Trading">
         <activity
-            android:name=".MainActivity"
+            android:name=".presentation.features.home.HomeActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.App.Starting"

@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.material3.adaptive.navigation3)
+    implementation(libs.androidx.ui)
     implementation(libs.kotlinx.serialization.core)
 
     // Dagger Hilt

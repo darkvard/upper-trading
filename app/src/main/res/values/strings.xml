@@ -1,3 +1,6 @@
 <resources>
-    <string name="app_name">Upper Tranding</string>
+    <string name="app_name">Upper Trading</string>
+    <string name="skip">Skip</string>
+    <string name="select_theme_desc">You can immediately select a color theme</string>
+    <string name="next">Next</string>
 </resources>

@@ -29,7 +29,7 @@ class SplashViewModel @Inject constructor(
             delay(1000)
 
             if (isCompleted) {
-                sendEffect(SplashEffect.NavigateMainTrade)
+                sendEffect(SplashEffect.NavigateHomeTrade)
             } else {
                 sendEffect(SplashEffect.NavigateOnboardingTheme)
             }

@@ -1,11 +1,10 @@
 package com.upper.trading.domain.usecase.onboarding
 
-import com.upper.trading.domain.storage.UserPreferencesDataSource
-import kotlinx.coroutines.flow.Flow
+import com.upper.trading.domain.storage.AppDataSource
 import javax.inject.Inject
 
 class CompleteOnboardingUseCase @Inject constructor(
-    private val dataStorage: UserPreferencesDataSource
+    private val dataStorage: AppDataSource
 ) {
 
     suspend operator fun invoke() {

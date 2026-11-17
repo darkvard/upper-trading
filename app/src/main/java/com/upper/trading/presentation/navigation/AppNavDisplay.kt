@@ -15,6 +15,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.upper.trading.presentation.features.onboarding.OnboardingIntroRoute
 import com.upper.trading.presentation.features.onboarding.OnboardingThemeRoute
 import com.upper.trading.presentation.features.splash.SplashRoute
+import com.upper.trading.presentation.features.trade.TradeRoute
 
 
 @Composable
@@ -44,8 +45,15 @@ fun AppNavDisplay(
         entryProvider = entryProvider {
             splashGraph(navigator)
             onboardingGraph(navigator)
+            homeGraph(navigator)
         }
     )
+}
+
+fun EntryProviderScope<AppNavKey>.homeGraph(navigator: Navigator<AppNavKey>) {
+    entry<MainNavKey.Trade> {
+        TradeRoute()
+    }
 }
 
 fun EntryProviderScope<AppNavKey>.splashGraph(navigator: Navigator<AppNavKey>) {
@@ -62,7 +70,7 @@ fun EntryProviderScope<AppNavKey>.splashGraph(navigator: Navigator<AppNavKey>) {
 }
 
 fun EntryProviderScope<AppNavKey>.onboardingGraph(navigator: Navigator<AppNavKey>) {
-    entry<OnboardingNavKey.Theme>  {
+    entry<OnboardingNavKey.Theme> {
         OnboardingThemeRoute(
             onNavigateToIntro = {
                 navigator.push(OnboardingNavKey.Intro)

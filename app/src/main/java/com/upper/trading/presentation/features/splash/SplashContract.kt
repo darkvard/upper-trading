@@ -10,5 +10,5 @@ data class SplashState(
 
 sealed interface SplashEffect : UiEffect {
     data object NavigateOnboardingTheme : SplashEffect
-    data object NavigateMainTrade : SplashEffect
+    data object NavigateHomeTrade : SplashEffect
 }

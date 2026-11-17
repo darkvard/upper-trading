@@ -1,6 +1,5 @@
 package com.upper.trading.presentation.features.splash
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -18,7 +16,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.upper.trading.R
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
-import com.upper.trading.core.utils.showToast
 
 object SplashDefault {
     val ImageLogoHeight = 74.dp
@@ -36,7 +33,7 @@ fun SplashRoute(
             is SplashEffect.NavigateOnboardingTheme -> {
                 onNavigateOnboardingTheme()
             }
-            is SplashEffect.NavigateMainTrade -> {
+            is SplashEffect.NavigateHomeTrade -> {
                 onNavigateMainTrade()
             }
         }
