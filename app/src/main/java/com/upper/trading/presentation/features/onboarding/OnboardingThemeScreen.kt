@@ -4,10 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.upper.trading.R
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
+import com.upper.trading.core.utils.bounceClick
 import com.upper.trading.presentation.features.onboarding.components.ThemeModeToggle
 import com.upper.trading.presentation.theme.AppColor
 import com.upper.trading.presentation.theme.TradingTheme
@@ -47,6 +50,8 @@ object OnboardingThemeDefault {
 
     val TextNextPadding = 8.dp
     val TextNextCorner = 4.dp
+
+    val TextNextHeight = 40.dp
 
     val BodyContentPadding = 24.dp
     val BodyContentPaddingTop = 74.dp
@@ -159,17 +164,18 @@ internal fun ThemeBodyContent(
             textAlign = TextAlign.Center,
         )
 
-        TextButton(
-            onClick = {
-                onIntent(OnboardingIntent.ConfirmTheme)
-            },
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(OnboardingThemeDefault.TextNextPadding)
+                .height(OnboardingThemeDefault.TextNextHeight)
+                .bounceClick {
+                    onIntent(OnboardingIntent.ConfirmTheme)
+                }
                 .background(
                     color = AppColor.primarySurface,
                     shape = RoundedCornerShape(OnboardingThemeDefault.TextNextCorner)
-                )
+                ),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = stringResource(R.string.next),
