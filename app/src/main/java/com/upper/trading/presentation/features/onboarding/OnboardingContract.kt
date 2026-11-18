@@ -15,12 +15,16 @@ sealed interface OnboardingIntent : UiIntent {
     data class SelectTheme(val isDark: Boolean) : OnboardingIntent
     data object ConfirmTheme: OnboardingIntent
     data class UpdateSlideIntro(val page: Int) : OnboardingIntent
-    data object SkipOnboarding: OnboardingIntent
+    data object SkipOnboardingIntro: OnboardingIntent
     data object CompleteIntro : OnboardingIntent
+    data object SelectSignIn: OnboardingIntent
+    data object SelectSignUp: OnboardingIntent
 }
 
 sealed interface OnboardingEffect: UiEffect {
     data object NavigateOnboardingIntro: OnboardingEffect
-    data object NavigateAuthSignIn: OnboardingEffect
+    data object NavigateOnboardingRegistration: OnboardingEffect
     data object NavigateHomeTrade: OnboardingEffect
+    data object NavigateAuthSignIn: OnboardingEffect
+    data object NavigateAuthSignUp: OnboardingEffect
 }

@@ -13,6 +13,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.upper.trading.presentation.features.onboarding.OnboardingIntroRoute
+import com.upper.trading.presentation.features.onboarding.OnboardingRegistrationRoute
 import com.upper.trading.presentation.features.onboarding.OnboardingThemeRoute
 import com.upper.trading.presentation.features.splash.SplashRoute
 import com.upper.trading.presentation.features.trade.TradeRoute
@@ -46,6 +47,7 @@ fun AppNavDisplay(
             splashGraph(navigator)
             onboardingGraph(navigator)
             homeGraph(navigator)
+            authGraph(navigator)
         }
     )
 }
@@ -79,12 +81,23 @@ fun EntryProviderScope<AppNavKey>.onboardingGraph(navigator: Navigator<AppNavKey
     }
     entry<OnboardingNavKey.Intro> {
         OnboardingIntroRoute(
-            onNavigateToAuthSignIn = {
-                navigator.replaceAll(AuthNavKey.SignIn)
+            onNavigateToRegistration = {
+                navigator.replaceAll(OnboardingNavKey.Registration)
             },
-            onNavigateToMainTrade = {
+            onNavigateToHomeTrade = {
                 navigator.replaceAll(MainNavKey.Trade)
             }
         )
+    }
+    entry<OnboardingNavKey.Registration> {
+        OnboardingRegistrationRoute(onClickSignIn = {
+            navigator.replaceAll(AuthNavKey.SignIn(isSignUp = it))
+        })
+    }
+}
+
+fun EntryProviderScope<AppNavKey>.authGraph(navigator: Navigator<AppNavKey>) {
+    entry<AuthNavKey.SignIn> {
+
     }
 }

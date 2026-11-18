@@ -13,12 +13,12 @@ data object SplashNavKey: AppNavKey
 sealed interface OnboardingNavKey: AppNavKey {
     @Serializable data object Intro: OnboardingNavKey
     @Serializable data object Theme: OnboardingNavKey
+    @Serializable data object Registration: OnboardingNavKey
 }
 
 @Serializable
 sealed interface AuthNavKey: AppNavKey {
-    @Serializable data object SignIn: AuthNavKey
-    @Serializable data object SignUp: AuthNavKey
+    @Serializable data class SignIn(val isSignUp: Boolean): AuthNavKey
     @Serializable data class Otp(val destination: String): AuthNavKey
     @Serializable data object PinSetup: AuthNavKey
     @Serializable data object Welcome: AuthNavKey

@@ -30,20 +30,20 @@ import com.upper.trading.presentation.theme.TradingTheme
 
 @Composable
 fun OnboardingIntroRoute(
-    onNavigateToAuthSignIn: () -> Unit,
-    onNavigateToMainTrade: () -> Unit,
+    onNavigateToRegistration: () -> Unit,
+    onNavigateToHomeTrade: () -> Unit,
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.effect) { effect ->
         when (effect) {
-            OnboardingEffect.NavigateAuthSignIn -> {
-                onNavigateToAuthSignIn()
+            OnboardingEffect.NavigateOnboardingRegistration -> {
+                onNavigateToRegistration()
             }
 
             OnboardingEffect.NavigateHomeTrade -> {
-                onNavigateToMainTrade()
+                onNavigateToHomeTrade()
             }
 
             else -> Unit
@@ -67,7 +67,7 @@ fun OnboardingIntroScreen(
     ImageActionLayout(
         imagePainter = painterResource(currentSlide.imageRes),
         actionText = stringResource(R.string.skip),
-        onActionClick = { onIntent(OnboardingIntent.SkipOnboarding) },
+        onActionClick = { onIntent(OnboardingIntent.SkipOnboardingIntro) },
         modifier = modifier
     ) {
         HorizontalPagerIndicator(

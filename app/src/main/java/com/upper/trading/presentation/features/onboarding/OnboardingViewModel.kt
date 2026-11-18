@@ -1,6 +1,5 @@
 package com.upper.trading.presentation.features.onboarding
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.upper.trading.domain.usecase.onboarding.CompleteOnboardingUseCase
 import com.upper.trading.domain.usecase.onboarding.GetDarkModeUseCase
@@ -48,7 +47,7 @@ class OnboardingViewModel @Inject constructor(
                 setState { copy(isDarkTheme = intent.isDark) }
             }
 
-            OnboardingIntent.SkipOnboarding -> {
+            OnboardingIntent.SkipOnboardingIntro -> {
                 viewModelScope.launch {
                     setDarkModeUseCase(currentState.isDarkTheme)
                     completeOnboardingUseCase()
@@ -64,9 +63,20 @@ class OnboardingViewModel @Inject constructor(
             }
 
             OnboardingIntent.CompleteIntro -> {
+                sendEffect(OnboardingEffect.NavigateOnboardingRegistration)
+            }
+
+            OnboardingIntent.SelectSignIn -> {
                 viewModelScope.launch {
                     completeOnboardingUseCase()
                     sendEffect(OnboardingEffect.NavigateAuthSignIn)
+                }
+            }
+
+            OnboardingIntent.SelectSignUp -> {
+                viewModelScope.launch {
+                    completeOnboardingUseCase()
+                    sendEffect(OnboardingEffect.NavigateAuthSignUp)
                 }
             }
         }

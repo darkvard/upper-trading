@@ -70,7 +70,7 @@ internal fun OnboardingThemeScreen(
     ImageActionLayout(
         imagePainter = themeImage,
         actionText = stringResource(R.string.skip),
-        onActionClick = { onIntent(OnboardingIntent.SkipOnboarding) },
+        onActionClick = { onIntent(OnboardingIntent.SkipOnboardingIntro) },
         modifier = modifier
     ) {
         ThemeModeToggle(
