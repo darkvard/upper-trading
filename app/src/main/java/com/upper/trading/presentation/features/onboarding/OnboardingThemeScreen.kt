@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.upper.trading.R
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
+import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.bounceClick
 import com.upper.trading.presentation.components.layout.ImageActionLayout
 import com.upper.trading.presentation.features.onboarding.components.ThemeModeToggle
@@ -111,12 +111,10 @@ internal fun OnboardingThemeScreen(
 @ThemePreviews
 @Composable
 fun PreviewOnboardingThemeScreen() {
-    TradingTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            OnboardingThemeScreen(
-                state = OnboardingState(),
-                onIntent = { }
-            )
-        }
+    TradingPreview {
+        OnboardingThemeScreen(
+            state = OnboardingState(),
+            onIntent = { }
+        )
     }
 }

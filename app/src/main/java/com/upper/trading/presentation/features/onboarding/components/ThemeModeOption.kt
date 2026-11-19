@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,7 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.upper.trading.R
 import com.upper.trading.core.utils.ThemePreviews
-import com.upper.trading.presentation.theme.TradingTheme
+import com.upper.trading.core.utils.TradingPreview
 
 
 object ThemeDefault {
@@ -106,9 +105,7 @@ private fun ThemeOptionItem(
 @ThemePreviews
 @Composable
 fun PreviewThemeModeToggle() {
-    TradingTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            ThemeModeToggle(isDarkTheme = false, {})
-        }
+    TradingPreview {
+        ThemeModeToggle(isDarkTheme = false, {})
     }
 }

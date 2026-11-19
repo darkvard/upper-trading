@@ -136,4 +136,5 @@ object AppColor {
     // Fixed primary surface (not theme-toggled)
     val primarySurface = purple5                  // #613DE4
     val textWhite = Color(0xFFF2F4F7)
+    val borderBlueGray = Color(0xFF475467)
 }

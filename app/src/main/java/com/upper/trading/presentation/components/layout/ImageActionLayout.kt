@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,8 +30,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.upper.trading.R
 import com.upper.trading.core.utils.ThemePreviews
+import com.upper.trading.core.utils.TradingPreview
+import com.upper.trading.core.utils.throttleClick
 import com.upper.trading.presentation.theme.AppColor
-import com.upper.trading.presentation.theme.TradingTheme
 
 data class ImageActionStyle(
     val imageSize: Dp = 358.dp,
@@ -75,8 +76,9 @@ fun ImageActionLayout(
                 color = AppColor.primarySurface,
                 modifier = Modifier
                     .align(Alignment.End)
+                    .minimumInteractiveComponentSize()
                     .padding(top = style.actionPaddingTop, end = style.actionPaddingEnd)
-                    .clickable { onActionClick() }
+                    .throttleClick { onActionClick() }
             )
         }
 
@@ -114,26 +116,24 @@ fun ImageActionLayout(
 @ThemePreviews
 @Composable
 private fun PreviewImageActionLayout() {
-    TradingTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            ImageActionLayout(
-                imagePainter = painterResource(R.drawable.img_theme),
-                actionText = "Skip",
-                onActionClick = {}
+    TradingPreview {
+        ImageActionLayout(
+            imagePainter = painterResource(R.drawable.img_theme),
+            actionText = "Skip",
+            onActionClick = {}
+        ) {
+            Text(
+                text = "You can immediately select a color theme",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
+            Button(
+                onClick = {},
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(4.dp)
             ) {
-                Text(
-                    text = "You can immediately select a color theme",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
-                )
-                Button(
-                    onClick = {},
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Text(text = "Next")
-                }
+                Text(text = "Next")
             }
         }
     }

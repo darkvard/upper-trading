@@ -1,14 +1,18 @@
 package com.upper.trading.presentation.features.onboarding
 
+import androidx.compose.runtime.Immutable
 import com.upper.trading.domain.model.IntroSlide
 import com.upper.trading.presentation.base.UiEffect
 import com.upper.trading.presentation.base.UiIntent
 import com.upper.trading.presentation.base.UiState
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
+@Immutable
 data class OnboardingState(
     val currentSlideIndex: Int = 0,
     val isDarkTheme: Boolean = false,
-    val introSlides: List<IntroSlide> = emptyList(),
+    val introSlides: ImmutableList<IntroSlide> = persistentListOf(),
 ): UiState
 
 sealed interface OnboardingIntent : UiIntent {

@@ -7,6 +7,7 @@ import com.upper.trading.domain.usecase.onboarding.GetIntroSlidesUseCase
 import com.upper.trading.domain.usecase.onboarding.SetDarkModeUseCase
 import com.upper.trading.presentation.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -28,7 +29,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun loadIntroSlides() {
-        setState { copy(introSlides = getIntroSlidesUseCase()) }
+        setState { copy(introSlides = getIntroSlidesUseCase().toPersistentList()) }
     }
 
     private fun observeTheme() {

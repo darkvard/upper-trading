@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,11 +18,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.upper.trading.R
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
+import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.bounceClick
 import com.upper.trading.presentation.components.layout.ImageActionDefaults
 import com.upper.trading.presentation.components.layout.ImageActionLayout
 import com.upper.trading.presentation.theme.AppColor
-import com.upper.trading.presentation.theme.TradingTheme
 
 data class RegistrationStyle(
     val buttonStrokeWidth: Dp = 1.dp,
@@ -122,11 +121,9 @@ fun OnboardingRegistrationScreen(
 @ThemePreviews
 @Composable
 fun PreviewOnboardingRegistrationScreen() {
-    TradingTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            OnboardingRegistrationScreen(
-                onIntent = { }
-            )
-        }
+    TradingPreview {
+        OnboardingRegistrationScreen(
+            onIntent = { }
+        )
     }
 }

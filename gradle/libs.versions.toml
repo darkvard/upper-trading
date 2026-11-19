@@ -34,8 +34,9 @@ kotlinxSerializationJson = "1.9.0"
 # Coil
 coil = "2.7.0"
 
-# Coroutines
+# Coroutines & Collections
 coroutines = "1.9.0"
+kotlinxCollectionsImmutable = "0.5.2"
 
 # Charts
 vico = "1.15.0"
@@ -47,6 +48,7 @@ espressoCore = "3.7.0"
 turbine = "1.2.1"
 ui = "1.12.1"
 animationCore = "1.12.1"
+foundation = "1.12.1"
 
 [libraries]
 # Compose (managed by BOM)
@@ -104,9 +106,10 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 # Coil
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
-# Coroutines
+# Coroutines & Collections
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 
 # Vico Charts
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
@@ -118,6 +121,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

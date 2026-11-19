@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -20,8 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.upper.trading.core.utils.ThemePreviews
+import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.presentation.theme.AppColor
-import com.upper.trading.presentation.theme.TradingTheme
 
 data class PagerIndicatorStyle(
     val activeWidth: Dp = 24.dp,
@@ -87,12 +86,10 @@ fun HorizontalPagerIndicator(
 @ThemePreviews
 @Composable
 fun PreviewHorizontalPagerIndicator() {
-    TradingTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            HorizontalPagerIndicator(
-                pageCount = 3,
-                currentPage = 0
-            )
-        }
+    TradingPreview {
+        HorizontalPagerIndicator(
+            pageCount = 3,
+            currentPage = 0
+        )
     }
 }

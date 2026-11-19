@@ -54,6 +54,7 @@ dependencies {
     // Core AndroidX & Lifecycle
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.foundation)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -94,8 +95,9 @@ dependencies {
     // Biometric
     implementation(libs.androidx.biometric)
 
-    // Coroutines
+    // Coroutines & Immutable Collections
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.collections.immutable)
 
     // Vico Charts
     implementation(libs.vico.compose.m3)

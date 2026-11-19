@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,12 +20,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.upper.trading.R
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
+import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.bounceClick
 import com.upper.trading.domain.model.IntroSlide
 import com.upper.trading.presentation.components.layout.ImageActionLayout
 import com.upper.trading.presentation.features.onboarding.components.HorizontalPagerIndicator
 import com.upper.trading.presentation.theme.AppColor
-import com.upper.trading.presentation.theme.TradingTheme
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun OnboardingIntroRoute(
@@ -111,21 +111,19 @@ fun OnboardingIntroScreen(
 @ThemePreviews
 @Composable
 fun PreviewOnboardingIntroScreen() {
-    val mockSlides = listOf(
+    val mockSlides = persistentListOf(
         IntroSlide(R.drawable.img_onboarding_trusted, R.string.intro_desc_1),
         IntroSlide(R.drawable.img_onboarding_any_currency, R.string.intro_desc_2),
         IntroSlide(R.drawable.img_onboarding_invest_and_earn, R.string.intro_desc_3)
     )
 
-    TradingTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            OnboardingIntroScreen(
-                state = OnboardingState(
-                    currentSlideIndex = 0,
-                    introSlides = mockSlides
-                ),
-                onIntent = {}
-            )
-        }
+    TradingPreview {
+        OnboardingIntroScreen(
+            state = OnboardingState(
+                currentSlideIndex = 0,
+                introSlides = mockSlides
+            ),
+            onIntent = {}
+        )
     }
 }
