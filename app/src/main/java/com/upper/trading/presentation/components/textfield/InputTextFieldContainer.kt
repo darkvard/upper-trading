@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 
 @Stable
 internal interface AppTextFieldScope {
@@ -73,7 +73,7 @@ internal fun InputTextFieldContainer(
                 onHeaderActionClick = onHeaderActionClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = style.headerPadding)
+                    .padding(bottom = style.headerPaddingVertical)
             )
         }
 
@@ -84,7 +84,7 @@ internal fun InputTextFieldContainer(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                modifier = Modifier.padding(style.errorPadding)
             )
         }
     }
@@ -120,7 +120,10 @@ internal fun InputTextFieldFrame(
         }
 
         Box(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.CenterStart,
             content = content
         )
 

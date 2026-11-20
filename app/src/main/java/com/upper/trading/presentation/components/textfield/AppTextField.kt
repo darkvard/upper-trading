@@ -1,12 +1,17 @@
 package com.upper.trading.presentation.components.textfield
 
-import androidx.compose.foundation.Image
+import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicSecureTextField
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,7 +20,6 @@ import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -25,7 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.upper.trading.R
@@ -34,13 +38,22 @@ import com.upper.trading.core.utils.TradingPreview
 
 @Immutable
 data class AppTextFieldStyle(
-    val headerPadding: Dp = 4.dp,
+    val headerPaddingVertical: Dp = 4.dp,
+    val headerPaddingHorizontal: Dp = 2.dp,
     val inputHeight: Dp = 40.dp,
     val borderWidth: Dp = 1.dp,
     val cornerRadius: Dp = 4.dp,
     val inputFrameSpacing: Dp = 8.dp,
     val iconSize: Dp = 24.dp,
-    val contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+    val contentPadding: PaddingValues = PaddingValues(
+        horizontal = 16.dp, vertical = 10.dp
+    ),
+    val errorPadding: PaddingValues = PaddingValues(
+        start = 8.dp,
+        top = 4.dp,
+        end = 8.dp,
+        bottom = 0.dp
+    ),
 )
 
 object AppTextFieldDefault {
@@ -88,6 +101,9 @@ fun AppTextField(
         ) {
             BasicTextField(
                 state = state,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
                 enabled = enabled,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface
@@ -157,6 +173,9 @@ fun AppSecureTextField(
         ) {
             BasicSecureTextField(
                 state = state,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
                 enabled = enabled,
                 textObfuscationMode = obfuscationMode,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
@@ -178,16 +197,72 @@ fun AppSecureTextField(
     }
 }
 
+@Composable
+fun AppPhoneTextField(
+    state: TextFieldState,
+    countryCode: String,
+    @DrawableRes countryFlag: Int,
+    onCountryClick: () -> Unit,
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    isExpanded: Boolean = false,
+    enabled: Boolean = true,
+    style: AppTextFieldStyle = AppTextFieldDefault.style,
+    label: String? = null,
+    placeholder: String? = null,
+    headerActionText: String? = null,
+    onHeaderActionClick: (() -> Unit)? = null,
+    isError: Boolean = false,
+    errorMessage: String? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+    onKeyboardAction: KeyboardActionHandler? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
+) {
+    AppTextField(
+        state = state,
+        modifier = modifier,
+        enabled = enabled,
+        singleLine = true,
+        style = style,
+        label = label,
+        placeholder = placeholder,
+        headerActionText = headerActionText,
+        onHeaderActionClick = onHeaderActionClick,
+        isError = isError,
+        errorMessage = errorMessage,
+        keyboardOptions = keyboardOptions,
+        onKeyboardAction = onKeyboardAction,
+        leadingContent = {
+            PhoneCountryPrefix(
+                countryCode = countryCode,
+                countryFlag = countryFlag,
+                onClick = onCountryClick,
+                enabled = enabled
+            )
+        },
+        trailingContent = trailingContent ?: {
+            CountryDropdownIcon(
+                isExpanded = isExpanded,
+                onClick = onCountryClick,
+                enabled = enabled
+            )
+        }
+    )
+}
+
 @ThemePreviews
 @Composable
 fun PreviewAppTextField() {
     TradingPreview {
         val emailState = rememberTextFieldState(initialText = "")
-        val phoneState = rememberTextFieldState(initialText = "0987654321")
+        val phoneState = rememberTextFieldState(initialText = "")
         val passwordState = rememberTextFieldState(initialText = "123456")
         val errorState = rememberTextFieldState(initialText = "invalid_email@")
         val disabledState = rememberTextFieldState(initialText = "upper_trader_vip")
+        var isPhoneMode by remember { mutableStateOf(true) }
         var isPasswordHidden by remember { mutableStateOf(true) }
+        var isCountryPickerOpen by remember { mutableStateOf(false) }
+        var selectedCountryCode by remember { mutableStateOf("+84") }
+        var selectedCountryFlag by remember { mutableStateOf(R.drawable.ic_flag_vn) }
 
         Column(
             modifier = Modifier
@@ -195,36 +270,41 @@ fun PreviewAppTextField() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            AppTextField(
-                state = emailState,
-                label = "Email Address",
-                placeholder = "Enter your email",
-                headerActionText = "Sign in with phone",
-                onHeaderActionClick = {},
-                leadingContent = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_at_sign),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+            AnimatedContent(
+                targetState = isPhoneMode,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(220)) togetherWith fadeOut(
+                        animationSpec = tween(
+                            180
+                        )
+                    )
+                },
+                label = "InputModePreviewTransition"
+            ) { inPhoneMode ->
+                if (!inPhoneMode) {
+                    AppTextField(
+                        state = emailState,
+                        label = "Email Address",
+                        placeholder = "Enter your email",
+                        headerActionText = "Sign in with phone",
+                        onHeaderActionClick = { isPhoneMode = true }
+                    )
+                } else {
+                    AppPhoneTextField(
+                        state = phoneState,
+                        countryCode = selectedCountryCode,
+                        countryFlag = selectedCountryFlag,
+                        isExpanded = isCountryPickerOpen,
+                        onCountryClick = {
+                            isCountryPickerOpen = !isCountryPickerOpen
+                        },
+                        label = "Mobile Number",
+                        placeholder = "Enter your number",
+                        headerActionText = "Sign In with Email",
+                        onHeaderActionClick = { isPhoneMode = false }
                     )
                 }
-            )
-
-            AppTextField(
-                state = phoneState,
-                label = "Phone Number",
-                placeholder = "Enter phone number",
-                headerActionText = "Sign in with email",
-                onHeaderActionClick = {},
-                leadingContent = {
-                    Image(
-                        painter = painterResource(R.drawable.ic_flag_vn),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            )
+            }
 
             AppSecureTextField(
                 state = passwordState,
