@@ -1,6 +1,7 @@
 package com.upper.trading.presentation.components.layout
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -36,7 +39,8 @@ data class ProgressBarStyle(
 
 data class ProgressBarState(
     val current: Float = 1f,
-    val total: Float = 9f
+    val total: Float = 9f,
+    val from: Float = (current - 1f).coerceAtLeast(0f),
 )
 
 object ProgressBarActionDefaults {
@@ -45,10 +49,10 @@ object ProgressBarActionDefaults {
 
 @Composable
 fun ProgressBarActionLayout(
-    progressBarState: ProgressBarState,
     onBackClick: () -> Unit,
-    onCloseClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onCloseClick: (() -> Unit)? = null,
+    progressBarState: ProgressBarState? = null,
     style: ProgressBarStyle = ProgressBarActionDefaults.style,
     bodyContent: @Composable ColumnScope.() -> Unit
 ) {
@@ -73,17 +77,21 @@ fun ProgressBarActionLayout(
                     .bounceClick(onCLick = onBackClick)
             )
 
-            Icon(
-                painter = painterResource(R.drawable.ic_close),
-                contentDescription = "Close",
-                modifier = Modifier
-                    .size(style.touchSize)
-                    .padding(style.iconPadding)
-                    .bounceClick(onCLick = onCloseClick)
-            )
+            if (onCloseClick != null && progressBarState != null) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_close),
+                    contentDescription = "Close",
+                    modifier = Modifier
+                        .size(style.touchSize)
+                        .padding(style.iconPadding)
+                        .bounceClick(onCLick = onCloseClick)
+                )
+            }
         }
 
-        AnimateProgressBar(state = progressBarState, style = style)
+        if (progressBarState != null) {
+            AnimateProgressBar(state = progressBarState, style = style)
+        }
 
         bodyContent()
     }
@@ -96,13 +104,21 @@ fun AnimateProgressBar(
     style: ProgressBarStyle
 ) {
     val safeTotal = if (state.total <= 0f) 1f else state.total
+    val initialFraction = (state.from / safeTotal).coerceIn(0f, 1f)
     val targetFraction = (state.current / safeTotal).coerceIn(0f, 1f)
 
-    val animatedFraction by animateFloatAsState(
-        targetValue = targetFraction,
-        animationSpec = tween(durationMillis = 500),
-        label = "process_animation"
-    )
+    // Animates smoothly from previous step to targetFraction
+    val progress = remember { Animatable(initialValue = initialFraction) }
+
+    LaunchedEffect(targetFraction) {
+        progress.animateTo(
+            targetValue = targetFraction,
+            animationSpec = tween(
+                durationMillis = 600,
+                easing = FastOutSlowInEasing
+            )
+        )
+    }
 
     Box(
         modifier = modifier
@@ -110,10 +126,10 @@ fun AnimateProgressBar(
             .height(style.progressBarHeight)
             .background(MaterialTheme.colorScheme.outline)
     ) {
-        if (animatedFraction > 0f) {
+        if (progress.value > 0f) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(animatedFraction)
+                    .fillMaxWidth(progress.value.coerceIn(0f, 1f))
                     .height(style.progressBarHeight)
                     .background(MaterialTheme.colorScheme.primary)
             )
@@ -123,14 +139,25 @@ fun AnimateProgressBar(
 
 @ThemePreviews
 @Composable
-fun PreviewProgressBarActionLayout() {
+fun PreviewProgressBarActionLayout_WithProgress() {
     TradingPreview {
         ProgressBarActionLayout(
-            progressBarState = ProgressBarState(),
+            progressBarState = ProgressBarState(current = 1f, total = 9f),
             onBackClick = {},
             onCloseClick = {}
         ) {
+        }
+    }
+}
 
+@ThemePreviews
+@Composable
+fun PreviewProgressBarActionLayout_WithoutProgress() {
+    TradingPreview {
+        ProgressBarActionLayout(
+            progressBarState = null,
+            onBackClick = {}
+        ) {
         }
     }
 }

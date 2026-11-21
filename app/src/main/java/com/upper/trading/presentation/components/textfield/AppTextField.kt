@@ -311,7 +311,19 @@ fun PreviewAppTextField() {
                 label = "Password",
                 placeholder = "Enter password",
                 isPasswordHidden = isPasswordHidden,
-                onTogglePasswordVisibility = { isPasswordHidden = !isPasswordHidden }
+                onTogglePasswordVisibility = { isPasswordHidden = !isPasswordHidden },
+                isError = false,
+                errorMessage = "Invalid password."
+            )
+
+            AppSecureTextField(
+                state = passwordState,
+                label = "Password",
+                placeholder = "Enter password",
+                isPasswordHidden = isPasswordHidden,
+                onTogglePasswordVisibility = { isPasswordHidden = !isPasswordHidden },
+                isError = true,
+                errorMessage = "Invalid password."
             )
 
             AppTextField(

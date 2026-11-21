@@ -58,7 +58,7 @@ fun <T> AppSegmentedControl(
     selectedItem: T,
     onItemSelected: (T) -> Unit,
     modifier: Modifier = Modifier,
-    itemLabel: (T) -> String = { it.toString() },
+    itemLabel: @Composable (T) -> String = { it.toString() },
     style: AppSegmentedControlStyle = AppSegmentedDefault.style,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     selectedColor: Color = MaterialTheme.colorScheme.primary,
