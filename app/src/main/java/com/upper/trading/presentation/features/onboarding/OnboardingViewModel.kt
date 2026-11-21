@@ -2,40 +2,36 @@ package com.upper.trading.presentation.features.onboarding
 
 import androidx.lifecycle.viewModelScope
 import com.upper.trading.domain.usecase.onboarding.CompleteOnboardingUseCase
-import com.upper.trading.domain.usecase.onboarding.GetDarkModeUseCase
 import com.upper.trading.domain.usecase.onboarding.GetIntroSlidesUseCase
 import com.upper.trading.domain.usecase.onboarding.SetDarkModeUseCase
 import com.upper.trading.presentation.base.BaseViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class OnboardingViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = OnboardingViewModel.Factory::class)
+class OnboardingViewModel @AssistedInject constructor(
+    @Assisted private val isSystemDarkTheme: Boolean,
     private val completeOnboardingUseCase: CompleteOnboardingUseCase,
     private val setDarkModeUseCase: SetDarkModeUseCase,
-    private val getDarkModeUseCase: GetDarkModeUseCase,
     private val getIntroSlidesUseCase: GetIntroSlidesUseCase,
 ) : BaseViewModel<OnboardingState, OnboardingIntent, OnboardingEffect>(
-    initialState = OnboardingState()
+    initialState = OnboardingState(isDarkTheme = isSystemDarkTheme)
 ) {
+    @AssistedFactory
+    interface Factory {
+        fun create(isSystemDarkTheme: Boolean = false): OnboardingViewModel
+    }
 
     init {
         loadIntroSlides()
-        observeTheme()
     }
 
     private fun loadIntroSlides() {
         setState { copy(introSlides = getIntroSlidesUseCase().toPersistentList()) }
-    }
-
-    private fun observeTheme() {
-        getDarkModeUseCase().onEach { isDark ->
-            setState { copy(isDarkTheme = isDark) }
-        }.launchIn(viewModelScope)
     }
 
     override fun onIntent(intent: OnboardingIntent) {

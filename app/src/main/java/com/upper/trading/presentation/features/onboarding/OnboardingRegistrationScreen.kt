@@ -39,19 +39,18 @@ object RegistrationDefault {
 
 @Composable
 fun OnboardingRegistrationRoute(
-    onClickSignIn: (isSignUp: Boolean) -> Unit,
-    viewModel: OnboardingViewModel = hiltViewModel()
+    onNavigateToSignIn: () -> Unit,
+    onNavigateToSignUp: () -> Unit,
+    viewModel: OnboardingViewModel = hiltViewModel(
+        creationCallback = { factory: OnboardingViewModel.Factory ->
+            factory.create(isSystemDarkTheme = false)
+        }
+    )
 ) {
     ObserveAsEvents(viewModel.effect) { effect ->
         when (effect) {
-            OnboardingEffect.NavigateAuthSignUp -> {
-                onClickSignIn(true)
-            }
-
-            OnboardingEffect.NavigateAuthSignUp -> {
-                onClickSignIn(false)
-            }
-
+            OnboardingEffect.NavigateAuthSignUp -> onNavigateToSignUp()
+            OnboardingEffect.NavigateAuthSignIn -> onNavigateToSignIn()
             else -> Unit
         }
     }

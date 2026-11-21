@@ -18,23 +18,44 @@ sealed interface OnboardingNavKey: AppNavKey {
 
 @Serializable
 sealed interface AuthNavKey: AppNavKey {
-    @Serializable data class SignIn(val isSignUp: Boolean): AuthNavKey
-    @Serializable data class Otp(val destination: String): AuthNavKey
+    @Serializable data class SignIn(
+        val isSignUp: Boolean = false,
+        val showProgressBar: Boolean = true
+    ): AuthNavKey
+    @Serializable data class Otp(
+        val destination: String,
+        val fromOnboarding: Boolean = true
+    ): AuthNavKey
     @Serializable data object PinSetup: AuthNavKey
     @Serializable data object Welcome: AuthNavKey
 }
 
 @Serializable
+sealed interface ProfileNavKey : AppNavKey {
+    @Serializable data class AccountSetup(val isStandalone: Boolean = false) : ProfileNavKey
+    @Serializable data class AccountAddress(val isStandalone: Boolean = false) : ProfileNavKey
+    @Serializable data class AccountCountry(val isStandalone: Boolean = false) : ProfileNavKey
+}
+
+@Serializable
 sealed interface KycNavKey : AppNavKey {
-    @Serializable data object AccountSetup : KycNavKey
-    @Serializable data object DocumentScan : KycNavKey
-    @Serializable data object Selfie : KycNavKey
-    @Serializable data object Processing : KycNavKey
+    @Serializable data class Selfie(val isStandalone: Boolean = false) : KycNavKey
+    @Serializable data class DocumentScan(val isStandalone: Boolean = false) : KycNavKey
+    @Serializable data class Processing(val isStandalone: Boolean = false) : KycNavKey
+}
+
+@Serializable
+sealed interface SecurityNavKey : AppNavKey {
+    @Serializable data class AddEmail(val isStandalone: Boolean = true) : SecurityNavKey
+    @Serializable data class VerifyEmailOtp(val email: String) : SecurityNavKey
+    @Serializable data class AddPhone(val isStandalone: Boolean = true) : SecurityNavKey
+    @Serializable data class VerifyPhoneOtp(val phone: String) : SecurityNavKey
 }
 
 @Serializable
 sealed interface CardNavKey : AppNavKey {
-    @Serializable data object AddCard : CardNavKey
+    @Serializable data class AddCard(val isStandalone: Boolean = false) : CardNavKey
+    @Serializable data class Verify(val isStandalone: Boolean = false) : CardNavKey
 }
 
 @Serializable

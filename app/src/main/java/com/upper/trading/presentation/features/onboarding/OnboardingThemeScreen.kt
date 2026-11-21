@@ -1,17 +1,13 @@
 package com.upper.trading.presentation.features.onboarding
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -22,10 +18,9 @@ import com.upper.trading.R
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
-import com.upper.trading.core.utils.bounceClick
+import com.upper.trading.presentation.components.button.AppPrimaryButton
 import com.upper.trading.presentation.components.layout.ImageActionLayout
 import com.upper.trading.presentation.features.onboarding.components.ThemeModeToggle
-import com.upper.trading.presentation.theme.AppColor
 import com.upper.trading.presentation.theme.TradingTheme
 
 object OnboardingThemeDefault {
@@ -36,9 +31,18 @@ object OnboardingThemeDefault {
 @Composable
 fun OnboardingThemeRoute(
     onNavigateToIntro: () -> Unit,
-    viewModel: OnboardingViewModel = hiltViewModel()
+    isSystemDark: Boolean = isSystemInDarkTheme(),
+    viewModel: OnboardingViewModel = hiltViewModel(
+        creationCallback = { factory: OnboardingViewModel.Factory ->
+            factory.create(isSystemDarkTheme = isSystemDark)
+        }
+    )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isSystemDark) {
+        viewModel.onIntent(OnboardingIntent.SelectTheme(isSystemDark))
+    }
 
     ObserveAsEvents(viewModel.effect) {
         when (it) {
@@ -85,25 +89,14 @@ internal fun OnboardingThemeScreen(
             textAlign = TextAlign.Center
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(OnboardingThemeDefault.TextNextHeight)
-                .bounceClick {
-                    onIntent(OnboardingIntent.ConfirmTheme)
-                }
-                .background(
-                    color = AppColor.primarySurface,
-                    shape = RoundedCornerShape(OnboardingThemeDefault.TextNextCorner)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stringResource(R.string.next),
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge
-            )
-        }
+        AppPrimaryButton(
+            text = stringResource(R.string.next),
+            onClick = {
+                onIntent(OnboardingIntent.ConfirmTheme)
+            },
+            shape = RoundedCornerShape(OnboardingThemeDefault.TextNextCorner),
+            height = OnboardingThemeDefault.TextNextHeight
+        )
     }
 }
 

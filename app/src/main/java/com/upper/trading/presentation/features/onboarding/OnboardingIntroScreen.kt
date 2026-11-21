@@ -23,6 +23,7 @@ import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.bounceClick
 import com.upper.trading.domain.model.IntroSlide
+import com.upper.trading.presentation.components.button.AppPrimaryButton
 import com.upper.trading.presentation.components.layout.ImageActionLayout
 import com.upper.trading.presentation.features.onboarding.components.HorizontalPagerIndicator
 import com.upper.trading.presentation.theme.AppColor
@@ -32,7 +33,11 @@ import kotlinx.collections.immutable.persistentListOf
 fun OnboardingIntroRoute(
     onNavigateToRegistration: () -> Unit,
     onNavigateToHomeTrade: () -> Unit,
-    viewModel: OnboardingViewModel = hiltViewModel()
+    viewModel: OnboardingViewModel = hiltViewModel(
+        creationCallback = { factory: OnboardingViewModel.Factory ->
+            factory.create(isSystemDarkTheme = false)
+        }
+    )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -82,29 +87,19 @@ fun OnboardingIntroScreen(
             textAlign = TextAlign.Center
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(OnboardingThemeDefault.TextNextHeight)
-                .bounceClick {
-                    if (state.currentSlideIndex < state.introSlides.size - 1) {
-                        onIntent(OnboardingIntent.UpdateSlideIntro(state.currentSlideIndex + 1))
-                    } else {
-                        onIntent(OnboardingIntent.CompleteIntro)
-                    }
+        AppPrimaryButton(
+            text = stringResource(R.string.next),
+            onClick = {
+                if (state.currentSlideIndex < state.introSlides.size - 1) {
+                    onIntent(OnboardingIntent.UpdateSlideIntro(state.currentSlideIndex + 1))
+                } else {
+                    onIntent(OnboardingIntent.CompleteIntro)
                 }
-                .background(
-                    color = AppColor.primarySurface,
-                    shape = RoundedCornerShape(OnboardingThemeDefault.TextNextCorner)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stringResource(R.string.next),
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge
-            )
-        }
+            },
+            isThrottled = false,
+            shape = RoundedCornerShape(OnboardingThemeDefault.TextNextCorner),
+            height = OnboardingThemeDefault.TextNextHeight
+        )
     }
 }
 
