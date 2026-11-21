@@ -1,39 +1,63 @@
 package com.upper.trading.presentation.features.auth.signin
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
+import com.upper.trading.R
+import com.upper.trading.core.utils.UiText
 import com.upper.trading.presentation.base.UiEffect
 import com.upper.trading.presentation.base.UiIntent
 import com.upper.trading.presentation.base.UiState
 
-enum class AuthTab { SIGN_IN, SIGN_UP }
+enum class AuthTab(@StringRes val titleRes: Int) {
+    SIGN_IN(R.string.sign_in),
+    SIGN_UP(R.string.sign_up)
+}
+
 enum class AuthInputMode { EMAIL, PHONE }
 
 @Immutable
-data class AuthSignInState(
-    // Tab & input mode
-    val authTab: AuthTab = AuthTab.SIGN_IN,
+data class SignInFormState(
     val inputMode: AuthInputMode = AuthInputMode.EMAIL,
-
-    // Form inputs
     val email: String = "",
     val phoneNumber: String = "",
     val countryCode: String = "+84",
+    @DrawableRes val countryFlagRes: Int = R.drawable.ic_flag_vn,
+    val isCountryPickerOpen: Boolean = false,
+    val password: String = "",
+    val isPasswordHidden: Boolean = true,
+    val emailError: UiText? = null,
+    val phoneError: UiText? = null,
+    val passwordError: UiText? = null,
+)
+
+@Immutable
+data class SignUpFormState(
+    val inputMode: AuthInputMode = AuthInputMode.EMAIL,
+    val email: String = "",
+    val phoneNumber: String = "",
+    val countryCode: String = "+84",
+    @DrawableRes val countryFlagRes: Int = R.drawable.ic_flag_vn,
+    val isCountryPickerOpen: Boolean = false,
     val password: String = "",
     val confirmPassword: String = "",
     val isPasswordHidden: Boolean = true,
     val isConfirmPasswordHidden: Boolean = true,
     val isAgreeTerms: Boolean = false,
+    val emailError: UiText? = null,
+    val phoneError: UiText? = null,
+    val passwordError: UiText? = null,
+    val confirmPasswordError: UiText? = null,
+)
 
-    // Validation & error states
-    val emailError: String? = null,
-    val phoneError: String? = null,
-    val passwordError: String? = null,
-    val confirmPasswordError: String? = null,
-    val generalError: String? = null,
-
-    // UI flags
+@Immutable
+data class AuthSignInState(
+    val authTab: AuthTab = AuthTab.SIGN_IN,
     val isLoading: Boolean = false,
-    val isBiometricAvailable: Boolean = false
+    val isBiometricAvailable: Boolean = false,
+    val generalError: UiText? = null,
+    val signInForm: SignInFormState = SignInFormState(),
+    val signUpForm: SignUpFormState = SignUpFormState()
 ) : UiState
 
 
@@ -46,6 +70,7 @@ sealed interface AuthSignInIntent : UiIntent {
     data class OnEmailChanged(val email: String) : AuthSignInIntent
     data class OnPhoneChanged(val phone: String) : AuthSignInIntent
     data class OnCountryCodeChanged(val code: String) : AuthSignInIntent
+    data class SelectCountry(val code: String, @DrawableRes val flagRes: Int) : AuthSignInIntent
     data class OnPasswordChanged(val password: String) : AuthSignInIntent
     data class OnConfirmPasswordChanged(val confirmPassword: String) : AuthSignInIntent
 
@@ -53,6 +78,7 @@ sealed interface AuthSignInIntent : UiIntent {
     data object TogglePasswordVisibility : AuthSignInIntent
     data object ToggleConfirmPasswordVisibility : AuthSignInIntent
     data class ToggleAgreeTerms(val isChecked: Boolean) : AuthSignInIntent
+    data object ToggleCountryPopupVisibility : AuthSignInIntent
 
     // Submission actions
     data object Submit : AuthSignInIntent
@@ -75,6 +101,6 @@ sealed interface AuthSignInEffect : UiEffect {
     data object NavigateBack : AuthSignInEffect
 
     // System interactions
-    data class ShowToast(val message: String) : AuthSignInEffect
+    data class ShowToast(val message: UiText) : AuthSignInEffect
     data object LaunchBiometricPrompt : AuthSignInEffect
 }
