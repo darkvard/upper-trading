@@ -67,11 +67,11 @@ private val DarkColorScheme = darkColorScheme(
     onSecondaryContainer   = blueShades5,  // #F5F7FC
 
     // Background
-    background   = blackShades95,         // #1F1F21 — dark Bg
+    background   = darkBlueShades2,         // #1D2939 — dark Bg
     onBackground = Color.White,           // Primary Body text in dark
 
     // Surface
-    surface             = blackShades9,   // #2E2E30 — dark Surfaces
+    surface             = darkBlueShades5,   // #1D2939 — dark Surfaces
     onSurface           = Color.White,
     surfaceVariant      = blackShades85,  // #3C3C40
     onSurfaceVariant    = blackShades3,   // #C7C7CC — Secondary Body text

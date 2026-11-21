@@ -9,4 +9,40 @@
     <string name="create_your_account">Create your account</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_up">Sign Up</string>
+    <string name="forgot_password">Forgot password</string>
+    <string name="password">Password</string>
+    <string name="email">Email</string>
+    <string name="mobile_number">Mobile Number</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="enter_your_phone_number">Enter your phone number</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="confirm_your_password">Confirm your password</string>
+    <string name="sign_in_with_phone">Sign In with Phone Number</string>
+    <string name="sign_in_with_email">Sign In with Email</string>
+    <string name="sign_up_with_phone">Sign Up with Phone Number</string>
+    <string name="sign_up_with_email">Sign Up with Email</string>
+    <string name="or">or</string>
+    <string name="sign_in_with_google">Sign In with Google</string>
+    <string name="sign_in_with_apple">Sign In with Apple</string>
+    <string name="use_fingerprint_instead">Use fingerprint instead?</string>
+    <string name="i_agree_to_the_terms_policy"><![CDATA[I agree to the terms & policy]]></string>
+
+    <!-- Validation & Auth Messages -->
+    <string name="error_empty_email">Email cannot be empty</string>
+    <string name="error_invalid_email">Please enter a valid email address</string>
+    <string name="error_empty_phone">Phone number cannot be empty</string>
+    <string name="error_invalid_phone">Please enter a valid phone number (9–12 digits)</string>
+    <string name="error_empty_password">Password cannot be empty</string>
+    <string name="error_password_too_short">Password must be at least 6 characters</string>
+    <string name="error_password_first_letter_uppercase">Password must start with an uppercase letter</string>
+    <string name="error_password_missing_number">Password must contain at least one number</string>
+    <string name="error_password_missing_special_char">Password must contain at least one special character</string>
+    <string name="error_empty_confirm_password">Please confirm your password</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="error_agree_terms">Please agree to the terms &amp; policy</string>
+    <string name="msg_sign_in_success">Sign in successfully</string>
+    <string name="msg_sign_up_success">Account created successfully</string>
+    <string name="msg_google_sign_in">Google Sign-In clicked</string>
+    <string name="msg_apple_sign_in">Apple Sign-In clicked</string>
 </resources>

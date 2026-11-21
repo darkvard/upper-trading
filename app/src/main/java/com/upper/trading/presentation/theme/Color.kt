@@ -96,6 +96,9 @@ val blueShades9  = Color(0xFF566FAE)
 val blueShades95 = Color(0xFF425EA5)
 val blueShades10 = Color(0xFF2E4D9B)
 
+val darkBlueShades5  = Color(0xFF101828)
+val darkBlueShades2  = Color(0xFF1D2939)
+
 // ─────────────────────────────────────────────
 // Raw Color Palette — Black Shades (gray neutral)
 // ─────────────────────────────────────────────
@@ -104,6 +107,7 @@ val blackShades05 = Color(0xFFF6F6F7)
 val blackShades1  = Color(0xFFECECEE)
 val blackShades15 = Color(0xFFE3E3E6)
 val blackShades2  = Color(0xFFD9D9DD)
+val backShades25 = Color(0xFFD4D4D4)
 val blackShades3  = Color(0xFFC7C7CC)
 val blackShades4  = Color(0xFFB4B4BB)
 val blackShades5  = Color(0xFFA1A1AA)

@@ -2,7 +2,9 @@ package com.upper.trading.presentation.base
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,5 +53,31 @@ abstract class BaseViewModel<S: UiState, I: UiIntent, E: UiEffect>(initialState:
 
     protected fun sendEffect(effect: E) {
         viewModelScope.launch { _effects.send(effect) }
+    }
+
+    /**
+     * Cancels the current [Job] (if active) and launches a new debounced coroutine on [viewModelScope]
+     * after waiting for [delayMs].
+     *
+     * @param delayMs Debounce delay in milliseconds before executing [block].
+     * @param block The suspend action to execute after the debounce delay.
+     * @return The newly launched [Job].
+     */
+    protected fun <T : Job?> T.launchDebounced(
+        delayMs: Long = 600L,
+        block: suspend () -> Unit
+    ): Job {
+        this?.cancel()
+        return viewModelScope.launch {
+            delay(delayMs)
+            block()
+        }
+    }
+
+    /**
+     * Cancels any active jobs passed as arguments.
+     */
+    protected fun cancelJobs(vararg jobs: Job?) {
+        jobs.forEach { it?.cancel() }
     }
 }
