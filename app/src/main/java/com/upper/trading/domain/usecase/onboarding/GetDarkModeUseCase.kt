@@ -7,7 +7,7 @@ import javax.inject.Inject
 class GetDarkModeUseCase @Inject constructor(
     private val dataStorage: AppDataSource
 ) {
-    operator fun invoke(): Flow<Boolean> {
+    operator fun invoke(): Flow<Boolean?> {
         return dataStorage.isDarkMode
     }
 

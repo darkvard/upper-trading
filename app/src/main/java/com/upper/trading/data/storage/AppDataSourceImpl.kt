@@ -19,8 +19,8 @@ class AppDataSourceImpl @Inject constructor(
         dataStore.setPreference(PreferencesKeys.ONBOARDING_COMPLETED, isCompleted)
     }
 
-    override val isDarkMode: Flow<Boolean>
-        get() = dataStore.getPreference(PreferencesKeys.THEME_DARK_MODE, false)
+    override val isDarkMode: Flow<Boolean?>
+        get() = dataStore.getPreference(PreferencesKeys.THEME_DARK_MODE)
 
     override suspend fun setDarkMode(isDarkMode: Boolean) {
         dataStore.setPreference(PreferencesKeys.THEME_DARK_MODE, isDarkMode)

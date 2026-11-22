@@ -6,6 +6,6 @@ interface AppDataSource {
     val isOnboardingCompleted: Flow<Boolean>
     suspend fun setOnboardingCompleted(isCompleted: Boolean)
 
-    val isDarkMode: Flow<Boolean>
+    val isDarkMode: Flow<Boolean?>
     suspend fun setDarkMode(isDarkMode: Boolean)
 }
