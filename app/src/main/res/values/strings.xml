@@ -45,4 +45,5 @@
     <string name="msg_sign_up_success">Account created successfully</string>
     <string name="msg_google_sign_in">Google Sign-In clicked</string>
     <string name="msg_apple_sign_in">Apple Sign-In clicked</string>
+    <string name="retry">Retry</string>
 </resources>

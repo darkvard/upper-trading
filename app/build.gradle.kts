@@ -60,6 +60,7 @@ dependencies {
 
     // Splash Screen
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.material3)
 
     // Navigation 3
     implementation(libs.androidx.navigation3.ui)

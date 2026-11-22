@@ -46,7 +46,7 @@ inline fun <reified K : AppNavKey> EntryProviderScope<AppNavKey>.stepEntry(
 
 @Composable
 fun AppNavDisplay(
-    navigator: Navigator<AppNavKey> = rememberAppNavigator(startDestination = SplashNavKey)
+    navigator: Navigator<AppNavKey> = rememberAppNavigator(startDestination = AuthNavKey.SignIn())  // todo default = SplashNavKey
 ) {
     NavDisplay(
         backStack = navigator.backStack,

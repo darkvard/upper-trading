@@ -35,10 +35,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.upper.trading.R
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
+import com.upper.trading.core.utils.UiText
 import com.upper.trading.core.utils.showToast
+import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
 import com.upper.trading.presentation.components.layout.ProgressBarActionLayout
 import com.upper.trading.presentation.components.tab.AppSegmentedControl
 import com.upper.trading.presentation.features.auth.signin.components.AuthSignInFingerprint
@@ -98,17 +101,25 @@ fun AuthSignInRoute(
         }
     )
 ) {
-    val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbar = LocalAppSnackbar.current
+    val coroutineScope = rememberCoroutineScope()
 
     ObserveAsEvents(events = viewModel.effect) { effect ->
         when (effect) {
             is AuthSignInEffect.ShowToast -> {
-                context.showToast(effect.message.asString(context))
+                coroutineScope.launch {
+                    val isError = effect.message == UiText.StringResource(R.string.error_agree_terms)
+                    if (isError) {
+                        snackbar.showError(title = effect.message)
+                    } else {
+                        snackbar.showSuccess(title = effect.message)
+                    }
+                }
             }
 
             AuthSignInEffect.LaunchBiometricPrompt -> {
-                // Handle local biometric prompt
+
             }
 
             AuthSignInEffect.NavigateBack -> onNavigateBack()
