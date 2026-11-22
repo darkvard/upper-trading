@@ -46,7 +46,6 @@ class OnboardingViewModel @AssistedInject constructor(
 
             OnboardingIntent.SkipOnboardingIntro -> {
                 viewModelScope.launch {
-                    setDarkModeUseCase(currentState.isDarkTheme)
                     completeOnboardingUseCase()
                     sendEffect(OnboardingEffect.NavigateHomeTrade)
                 }

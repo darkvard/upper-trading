@@ -1,6 +1,5 @@
 package com.upper.trading.presentation.navigation
 
-import android.util.Log
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -29,6 +28,22 @@ import com.upper.trading.presentation.features.onboarding.OnboardingThemeRoute
 import com.upper.trading.presentation.features.splash.SplashRoute
 import com.upper.trading.presentation.features.trade.TradeRoute
 
+
+private const val NAV_METADATA_PROGRESS_STEP = "is_progress_step"
+private const val NAV_METADATA_SPLASH = "is_splash"
+
+val StepMetadata = mapOf(NAV_METADATA_PROGRESS_STEP to true)
+private val SplashMetadata = mapOf(NAV_METADATA_SPLASH to true)
+
+inline fun <reified K : AppNavKey> EntryProviderScope<AppNavKey>.stepEntry(
+    noinline content: @Composable (K) -> Unit
+) {
+    entry<K>(
+        metadata = StepMetadata,
+        content = content
+    )
+}
+
 @Composable
 fun AppNavDisplay(
     navigator: Navigator<AppNavKey> = rememberAppNavigator(startDestination = SplashNavKey)
@@ -41,8 +56,10 @@ fun AppNavDisplay(
             rememberViewModelStoreNavEntryDecorator()
         ),
         transitionSpec = {
-            val isFromSplash = isSplashKey(initialState.key)
-            val isStepTransition = isProgressStepKey(initialState.key) && isProgressStepKey(targetState.key)
+            val isFromSplash = initialState.metadata[NAV_METADATA_SPLASH] == true
+            val isStepTransition = initialState.metadata[NAV_METADATA_PROGRESS_STEP] == true &&
+                    targetState.metadata[NAV_METADATA_PROGRESS_STEP] == true
+
             if (isFromSplash || isStepTransition) {
                 ContentTransform(
                     targetContentEnter = EnterTransition.None,
@@ -74,7 +91,7 @@ fun EntryProviderScope<AppNavKey>.homeGraph(navigator: Navigator<AppNavKey>) {
 }
 
 fun EntryProviderScope<AppNavKey>.splashGraph(navigator: Navigator<AppNavKey>) {
-    entry<SplashNavKey> {
+    entry<SplashNavKey>(metadata = SplashMetadata) {
         SplashRoute(
             onNavigateOnboardingTheme = {
                 navigator.replace(OnboardingNavKey.Theme)
@@ -91,6 +108,9 @@ fun EntryProviderScope<AppNavKey>.onboardingGraph(navigator: Navigator<AppNavKey
         OnboardingThemeRoute(
             onNavigateToIntro = {
                 navigator.push(OnboardingNavKey.Intro)
+            },
+            onNavigateToHomeTrade = {
+                navigator.replaceAll(MainNavKey.Trade)
             }
         )
     }
@@ -111,13 +131,18 @@ fun EntryProviderScope<AppNavKey>.onboardingGraph(navigator: Navigator<AppNavKey
             },
             onNavigateToSignUp = {
                 navigator.push(AuthNavKey.SignIn(isSignUp = true, showProgressBar = true))
+            },
+            onNavigateToHomeTrade = {
+                navigator.replaceAll(MainNavKey.Trade)
             }
         )
     }
 }
 
 fun EntryProviderScope<AppNavKey>.authGraph(navigator: Navigator<AppNavKey>) {
-    entry<AuthNavKey.SignIn> { entry ->
+    entry<AuthNavKey.SignIn>(
+        metadata = { key -> mapOf(NAV_METADATA_PROGRESS_STEP to key.showProgressBar) }
+    ) { entry ->
         AuthSignInRoute(
             isSignUp = entry.isSignUp,
             showProgressBar = entry.showProgressBar,
@@ -138,7 +163,9 @@ fun EntryProviderScope<AppNavKey>.authGraph(navigator: Navigator<AppNavKey>) {
         )
     }
 
-    entry<AuthNavKey.Otp> { entry ->
+    entry<AuthNavKey.Otp>(
+        metadata = { key -> mapOf(NAV_METADATA_PROGRESS_STEP to key.fromOnboarding) }
+    ) { entry ->
         AuthOtpScreen(
             destination = entry.destination,
             progressBarState = if (entry.fromOnboarding) {
@@ -160,7 +187,7 @@ fun EntryProviderScope<AppNavKey>.authGraph(navigator: Navigator<AppNavKey>) {
 }
 
 fun EntryProviderScope<AppNavKey>.profileGraph(navigator: Navigator<AppNavKey>) {
-    entry<ProfileNavKey.AccountSetup> { entry ->
+    stepEntry<ProfileNavKey.AccountSetup> { entry ->
         val progress = if (entry.isStandalone) {
             StandaloneAccountSetupFlowStep.PERSONAL_INFO.toProgressBarState()
         } else {
@@ -173,7 +200,7 @@ fun EntryProviderScope<AppNavKey>.profileGraph(navigator: Navigator<AppNavKey>) 
             onNextClick = { navigator.push(ProfileNavKey.AccountAddress(isStandalone = entry.isStandalone)) }
         )
     }
-    entry<ProfileNavKey.AccountAddress> { entry ->
+    stepEntry<ProfileNavKey.AccountAddress> { entry ->
         val progress = if (entry.isStandalone) {
             StandaloneAccountSetupFlowStep.HOME_ADDRESS.toProgressBarState()
         } else {
@@ -186,7 +213,7 @@ fun EntryProviderScope<AppNavKey>.profileGraph(navigator: Navigator<AppNavKey>) 
             onNextClick = { navigator.push(ProfileNavKey.AccountCountry(isStandalone = entry.isStandalone)) }
         )
     }
-    entry<ProfileNavKey.AccountCountry> { entry ->
+    stepEntry<ProfileNavKey.AccountCountry> { entry ->
         val progress = if (entry.isStandalone) {
             StandaloneAccountSetupFlowStep.COUNTRY.toProgressBarState()
         } else {
@@ -208,7 +235,7 @@ fun EntryProviderScope<AppNavKey>.profileGraph(navigator: Navigator<AppNavKey>) 
 }
 
 fun EntryProviderScope<AppNavKey>.kycGraph(navigator: Navigator<AppNavKey>) {
-    entry<KycNavKey.Selfie> { entry ->
+    stepEntry<KycNavKey.Selfie> { entry ->
         val progress = if (entry.isStandalone) {
             StandaloneKycFlowStep.SELFIE.toProgressBarState()
         } else {
@@ -221,7 +248,7 @@ fun EntryProviderScope<AppNavKey>.kycGraph(navigator: Navigator<AppNavKey>) {
             onNextClick = { navigator.push(KycNavKey.DocumentScan(isStandalone = entry.isStandalone)) }
         )
     }
-    entry<KycNavKey.DocumentScan> { entry ->
+    stepEntry<KycNavKey.DocumentScan> { entry ->
         val progress = if (entry.isStandalone) {
             StandaloneKycFlowStep.DOCUMENT.toProgressBarState()
         } else {
@@ -234,7 +261,7 @@ fun EntryProviderScope<AppNavKey>.kycGraph(navigator: Navigator<AppNavKey>) {
             onNextClick = { navigator.push(KycNavKey.Processing(isStandalone = entry.isStandalone)) }
         )
     }
-    entry<KycNavKey.Processing> { entry ->
+    stepEntry<KycNavKey.Processing> { entry ->
         val progress = if (entry.isStandalone) {
             StandaloneKycFlowStep.PROCESSING.toProgressBarState()
         } else {
@@ -256,7 +283,7 @@ fun EntryProviderScope<AppNavKey>.kycGraph(navigator: Navigator<AppNavKey>) {
 }
 
 fun EntryProviderScope<AppNavKey>.cardGraph(navigator: Navigator<AppNavKey>) {
-    entry<CardNavKey.AddCard> { entry ->
+    stepEntry<CardNavKey.AddCard> { entry ->
         val progress = if (entry.isStandalone) {
             StandaloneCardFlowStep.CARD_INFO.toProgressBarState()
         } else {
@@ -269,7 +296,7 @@ fun EntryProviderScope<AppNavKey>.cardGraph(navigator: Navigator<AppNavKey>) {
             onNextClick = { navigator.push(CardNavKey.Verify(isStandalone = entry.isStandalone)) }
         )
     }
-    entry<CardNavKey.Verify> { entry ->
+    stepEntry<CardNavKey.Verify> { entry ->
         val progress = if (entry.isStandalone) {
             StandaloneCardFlowStep.CARD_VERIFY.toProgressBarState()
         } else {
@@ -282,29 +309,4 @@ fun EntryProviderScope<AppNavKey>.cardGraph(navigator: Navigator<AppNavKey>) {
             onCompleteClick = { navigator.replaceAll(MainNavKey.Trade) }
         )
     }
-}
-
-private fun extractKeyString(sceneKey: Any?): String {
-    return when (sceneKey) {
-        is Pair<*, *> -> sceneKey.first?.toString().orEmpty()
-        else -> sceneKey?.toString().orEmpty()
-    }
-}
-
-private fun isSplashKey(sceneKey: Any?): Boolean {
-    return extractKeyString(sceneKey).contains("SplashNavKey")
-}
-
-private fun isProgressStepKey(sceneKey: Any?): Boolean {
-    val keyStr = extractKeyString(sceneKey)
-    return (keyStr.contains("SignIn") && keyStr.contains("showProgressBar=true")) ||
-           (keyStr.contains("Otp") && keyStr.contains("fromOnboarding=true")) ||
-           keyStr.contains("AccountSetup") ||
-           keyStr.contains("AccountAddress") ||
-           keyStr.contains("AccountCountry") ||
-           keyStr.contains("Selfie") ||
-           keyStr.contains("DocumentScan") ||
-           keyStr.contains("Processing") ||
-           keyStr.contains("AddCard") ||
-           keyStr.contains("Verify")
 }

@@ -41,6 +41,7 @@ object RegistrationDefault {
 fun OnboardingRegistrationRoute(
     onNavigateToSignIn: () -> Unit,
     onNavigateToSignUp: () -> Unit,
+    onNavigateToHomeTrade: () -> Unit = {},
     viewModel: OnboardingViewModel = hiltViewModel(
         creationCallback = { factory: OnboardingViewModel.Factory ->
             factory.create(isSystemDarkTheme = false)
@@ -51,6 +52,7 @@ fun OnboardingRegistrationRoute(
         when (effect) {
             OnboardingEffect.NavigateAuthSignUp -> onNavigateToSignUp()
             OnboardingEffect.NavigateAuthSignIn -> onNavigateToSignIn()
+            OnboardingEffect.NavigateHomeTrade -> onNavigateToHomeTrade()
             else -> Unit
         }
     }

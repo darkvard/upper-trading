@@ -31,6 +31,7 @@ object OnboardingThemeDefault {
 @Composable
 fun OnboardingThemeRoute(
     onNavigateToIntro: () -> Unit,
+    onNavigateToHomeTrade: () -> Unit = {},
     isSystemDark: Boolean = isSystemInDarkTheme(),
     viewModel: OnboardingViewModel = hiltViewModel(
         creationCallback = { factory: OnboardingViewModel.Factory ->
@@ -48,6 +49,9 @@ fun OnboardingThemeRoute(
         when (it) {
             OnboardingEffect.NavigateOnboardingIntro -> {
                 onNavigateToIntro()
+            }
+            OnboardingEffect.NavigateHomeTrade -> {
+                onNavigateToHomeTrade()
             }
             else -> Unit
         }
