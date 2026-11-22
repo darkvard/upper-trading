@@ -5,10 +5,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
@@ -21,9 +23,13 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -34,7 +40,6 @@ import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.showToast
 import com.upper.trading.presentation.components.layout.ProgressBarActionLayout
-import com.upper.trading.presentation.components.layout.ProgressBarState
 import com.upper.trading.presentation.components.tab.AppSegmentedControl
 import com.upper.trading.presentation.features.auth.signin.components.AuthSignInFingerprint
 import com.upper.trading.presentation.features.auth.signin.components.AuthSignInForm
@@ -42,6 +47,8 @@ import com.upper.trading.presentation.features.auth.signin.components.AuthSignUp
 import com.upper.trading.presentation.features.auth.signin.components.AuthSocialSection
 import com.upper.trading.presentation.navigation.RegistrationFlowStep
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Immutable
 data class AuthSignInStyle(
@@ -126,8 +133,13 @@ fun AuthSignInScreen(
     onIntent: (AuthSignInIntent) -> Unit,
     modifier: Modifier = Modifier,
     showProgressBar: Boolean = true,
+    scrollState: ScrollState = rememberScrollState(),
     style: AuthSignInStyle = AuthSignInDefaults.style
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val coroutineScope = rememberCoroutineScope()
+
     val progressBarState = remember(showProgressBar) {
         if (showProgressBar) {
             RegistrationFlowStep.SIGN_UP.toProgressBarState()
@@ -139,6 +151,23 @@ fun AuthSignInScreen(
     val signInInputStates = rememberSignInInputStates(formState = state.signInForm, onIntent = onIntent)
     val signUpInputStates = rememberSignUpInputStates(formState = state.signUpForm, onIntent = onIntent)
 
+    val handleIntent: (AuthSignInIntent) -> Unit = remember(
+        onIntent, keyboardController, focusManager, scrollState, coroutineScope
+    ) {
+        { intent ->
+            if (intent is AuthSignInIntent.Submit) {
+                keyboardController?.hide()
+                focusManager.clearFocus()
+                coroutineScope.launch {
+                    delay(150)
+                    scrollState.animateScrollTo(0)
+                    scrollState.scrollTo(0)
+                }
+            }
+            onIntent(intent)
+        }
+    }
+
     ProgressBarActionLayout(
         progressBarState = progressBarState,
         onBackClick = { onIntent(AuthSignInIntent.BackClick) },
@@ -149,11 +178,13 @@ fun AuthSignInScreen(
     ) {
         AuthSignInContent(
             state = state,
-            onIntent = onIntent,
+            onIntent = handleIntent,
             signInInputStates = signInInputStates,
             signUpInputStates = signUpInputStates,
             hasProgressBar = progressBarState != null,
-            style = style
+            scrollState = scrollState,
+            style = style,
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -167,24 +198,26 @@ private fun rememberSignInInputStates(
     val phoneState = rememberTextFieldState(initialText = formState.phoneNumber)
     val passwordState = rememberTextFieldState(initialText = formState.password)
 
+    val currentFormState by rememberUpdatedState(formState)
+
     LaunchedEffect(emailState) {
         snapshotFlow { emailState.text.toString() }
             .collect { text ->
-                if (text != formState.email) onIntent(AuthSignInIntent.OnEmailChanged(text))
+                if (text != currentFormState.email) onIntent(AuthSignInIntent.OnEmailChanged(text))
             }
     }
 
     LaunchedEffect(phoneState) {
         snapshotFlow { phoneState.text.toString() }
             .collect { text ->
-                if (text != formState.phoneNumber) onIntent(AuthSignInIntent.OnPhoneChanged(text))
+                if (text != currentFormState.phoneNumber) onIntent(AuthSignInIntent.OnPhoneChanged(text))
             }
     }
 
     LaunchedEffect(passwordState) {
         snapshotFlow { passwordState.text.toString() }
             .collect { text ->
-                if (text != formState.password) onIntent(AuthSignInIntent.OnPasswordChanged(text))
+                if (text != currentFormState.password) onIntent(AuthSignInIntent.OnPasswordChanged(text))
             }
     }
 
@@ -219,31 +252,33 @@ private fun rememberSignUpInputStates(
     val passwordState = rememberTextFieldState(initialText = formState.password)
     val confirmPasswordState = rememberTextFieldState(initialText = formState.confirmPassword)
 
+    val currentFormState by rememberUpdatedState(formState)
+
     LaunchedEffect(emailState) {
         snapshotFlow { emailState.text.toString() }
             .collect { text ->
-                if (text != formState.email) onIntent(AuthSignInIntent.OnEmailChanged(text))
+                if (text != currentFormState.email) onIntent(AuthSignInIntent.OnEmailChanged(text))
             }
     }
 
     LaunchedEffect(phoneState) {
         snapshotFlow { phoneState.text.toString() }
             .collect { text ->
-                if (text != formState.phoneNumber) onIntent(AuthSignInIntent.OnPhoneChanged(text))
+                if (text != currentFormState.phoneNumber) onIntent(AuthSignInIntent.OnPhoneChanged(text))
             }
     }
 
     LaunchedEffect(passwordState) {
         snapshotFlow { passwordState.text.toString() }
             .collect { text ->
-                if (text != formState.password) onIntent(AuthSignInIntent.OnPasswordChanged(text))
+                if (text != currentFormState.password) onIntent(AuthSignInIntent.OnPasswordChanged(text))
             }
     }
 
     LaunchedEffect(confirmPasswordState) {
         snapshotFlow { confirmPasswordState.text.toString() }
             .collect { text ->
-                if (text != formState.confirmPassword) {
+                if (text != currentFormState.confirmPassword) {
                     onIntent(AuthSignInIntent.OnConfirmPasswordChanged(text))
                 }
             }
@@ -266,16 +301,18 @@ private fun AuthSignInContent(
     signInInputStates: SignInInputStates,
     signUpInputStates: SignUpInputStates,
     hasProgressBar: Boolean,
+    scrollState: ScrollState,
     style: AuthSignInStyle,
     modifier: Modifier = Modifier
 ) {
     val tabs = AuthTab.entries.toPersistentList()
     val tabLabels = tabs.associateWith { stringResource(it.titleRes) }
-    val scrollState = rememberScrollState()
 
     Column(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .imePadding()
+            .navigationBarsPadding()
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(style.itemSpacing),
     ) {
@@ -348,7 +385,7 @@ private fun AuthSignInContent(
             onIntent = onIntent,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = style.fingerprintPaddingTop)
+                .padding(vertical = style.fingerprintPaddingTop)
         )
     }
 }

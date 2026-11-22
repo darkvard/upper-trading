@@ -68,7 +68,9 @@ class AuthSignInViewModel @AssistedInject constructor(
                 setState {
                     copy(
                         authTab = toTab,
-                        generalError = null
+                        generalError = null,
+                        signInForm = signInForm.copy(hasSubmitted = false),
+                        signUpForm = signUpForm.copy(hasSubmitted = false)
                     )
                 }
             }
@@ -99,13 +101,15 @@ class AuthSignInViewModel @AssistedInject constructor(
             }
 
             is AuthSignInIntent.OnEmailChanged -> {
-                if (currentState.authTab == AuthTab.SIGN_IN) {
+                val isSignIn = currentState.authTab == AuthTab.SIGN_IN
+                val hasSubmitted = if (isSignIn) currentState.signInForm.hasSubmitted else currentState.signUpForm.hasSubmitted
+                if (isSignIn) {
                     setState { copy(signInForm = signInForm.copy(email = intent.email)) }
                 } else {
                     setState { copy(signUpForm = signUpForm.copy(email = intent.email)) }
                 }
                 emailValidationJob = emailValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
-                    val result = validator.validateEmail(intent.email, isSubmit = false)
+                    val result = validator.validateEmail(intent.email, isSubmit = hasSubmitted)
                     setState {
                         if (authTab == AuthTab.SIGN_IN) {
                             copy(signInForm = signInForm.copy(emailError = result.errorMessage))
@@ -117,13 +121,15 @@ class AuthSignInViewModel @AssistedInject constructor(
             }
 
             is AuthSignInIntent.OnPhoneChanged -> {
-                if (currentState.authTab == AuthTab.SIGN_IN) {
+                val isSignIn = currentState.authTab == AuthTab.SIGN_IN
+                val hasSubmitted = if (isSignIn) currentState.signInForm.hasSubmitted else currentState.signUpForm.hasSubmitted
+                if (isSignIn) {
                     setState { copy(signInForm = signInForm.copy(phoneNumber = intent.phone)) }
                 } else {
                     setState { copy(signUpForm = signUpForm.copy(phoneNumber = intent.phone)) }
                 }
                 phoneValidationJob = phoneValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
-                    val result = validator.validatePhone(intent.phone, isSubmit = false)
+                    val result = validator.validatePhone(intent.phone, isSubmit = hasSubmitted)
                     setState {
                         if (authTab == AuthTab.SIGN_IN) {
                             copy(signInForm = signInForm.copy(phoneError = result.errorMessage))
@@ -168,24 +174,27 @@ class AuthSignInViewModel @AssistedInject constructor(
 
             is AuthSignInIntent.OnPasswordChanged -> {
                 if (currentState.authTab == AuthTab.SIGN_IN) {
+                    val hasSubmitted = currentState.signInForm.hasSubmitted
                     setState { copy(signInForm = signInForm.copy(password = intent.password)) }
                     passwordValidationJob = passwordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
-                        val result = validator.validatePassword(intent.password, isSubmit = false)
+                        val result = validator.validatePassword(intent.password, isSubmit = hasSubmitted)
                         setState { copy(signInForm = signInForm.copy(passwordError = result.errorMessage)) }
                     }
                 } else {
+                    val hasSubmitted = currentState.signUpForm.hasSubmitted
                     setState { copy(signUpForm = signUpForm.copy(password = intent.password)) }
                     passwordValidationJob = passwordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
-                        val result = validator.validatePassword(intent.password, isSubmit = false)
+                        val result = validator.validatePassword(intent.password, isSubmit = hasSubmitted)
                         setState { copy(signUpForm = signUpForm.copy(passwordError = result.errorMessage)) }
                     }
-                    // Re-validate confirm password if it was already filled
-                    if (currentState.signUpForm.confirmPassword.isNotEmpty()) {
+                    // Re-validate confirm password if it was already filled or if form was submitted
+                    val confirmPassword = currentState.signUpForm.confirmPassword
+                    if (confirmPassword.isNotEmpty() || hasSubmitted) {
                         confirmPasswordValidationJob = confirmPasswordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
                             val result = validator.validateConfirmPassword(
                                 password = intent.password,
-                                confirmPassword = currentState.signUpForm.confirmPassword,
-                                isSubmit = false
+                                confirmPassword = confirmPassword,
+                                isSubmit = hasSubmitted
                             )
                             setState { copy(signUpForm = signUpForm.copy(confirmPasswordError = result.errorMessage)) }
                         }
@@ -194,12 +203,13 @@ class AuthSignInViewModel @AssistedInject constructor(
             }
 
             is AuthSignInIntent.OnConfirmPasswordChanged -> {
+                val hasSubmitted = currentState.signUpForm.hasSubmitted
                 setState { copy(signUpForm = signUpForm.copy(confirmPassword = intent.confirmPassword)) }
                 confirmPasswordValidationJob = confirmPasswordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
                     val result = validator.validateConfirmPassword(
                         password = currentState.signUpForm.password,
                         confirmPassword = intent.confirmPassword,
-                        isSubmit = false
+                        isSubmit = hasSubmitted
                     )
                     setState { copy(signUpForm = signUpForm.copy(confirmPasswordError = result.errorMessage)) }
                 }
@@ -295,6 +305,7 @@ class AuthSignInViewModel @AssistedInject constructor(
             setState {
                 copy(
                     signInForm = signInForm.copy(
+                        hasSubmitted = true,
                         emailError = validation.emailError,
                         phoneError = validation.phoneError,
                         passwordError = validation.passwordError
@@ -356,6 +367,7 @@ class AuthSignInViewModel @AssistedInject constructor(
             setState {
                 copy(
                     signUpForm = signUpForm.copy(
+                        hasSubmitted = true,
                         emailError = validation.emailError,
                         phoneError = validation.phoneError,
                         passwordError = validation.passwordError,
