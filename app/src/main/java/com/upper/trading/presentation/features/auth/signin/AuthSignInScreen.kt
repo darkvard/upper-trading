@@ -16,8 +16,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +30,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -40,9 +42,9 @@ import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.UiText
-import com.upper.trading.core.utils.showToast
-import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
+import com.upper.trading.presentation.components.bottomsheet.country.CountryBottomSheet
 import com.upper.trading.presentation.components.layout.ProgressBarActionLayout
+import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
 import com.upper.trading.presentation.components.tab.AppSegmentedControl
 import com.upper.trading.presentation.features.auth.signin.components.AuthSignInFingerprint
 import com.upper.trading.presentation.features.auth.signin.components.AuthSignInForm
@@ -50,8 +52,12 @@ import com.upper.trading.presentation.features.auth.signin.components.AuthSignUp
 import com.upper.trading.presentation.features.auth.signin.components.AuthSocialSection
 import com.upper.trading.presentation.navigation.RegistrationFlowStep
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
 data class AuthSignInStyle(
@@ -144,6 +150,29 @@ fun AuthSignInScreen(
     onIntent: (AuthSignInIntent) -> Unit,
     modifier: Modifier = Modifier,
     showProgressBar: Boolean = true,
+) {
+    AuthSignInContent(
+        state = state,
+        onIntent = onIntent,
+        showProgressBar = showProgressBar,
+        modifier = modifier
+    )
+
+    if (state.isCurrentFormOpenCountryBottomSheet) {
+        ShowSelectCountryBottomSheet(
+            state = state,
+            onIntent = onIntent,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun AuthSignInContent(
+    state: AuthSignInState,
+    onIntent: (AuthSignInIntent) -> Unit,
+    modifier: Modifier = Modifier,
+    showProgressBar: Boolean = true,
     scrollState: ScrollState = rememberScrollState(),
     style: AuthSignInStyle = AuthSignInDefaults.style
 ) {
@@ -187,7 +216,7 @@ fun AuthSignInScreen(
         } else null,
         modifier = modifier
     ) {
-        AuthSignInContent(
+        AuthSignInSection(
             state = state,
             onIntent = handleIntent,
             signInInputStates = signInInputStates,
@@ -199,6 +228,7 @@ fun AuthSignInScreen(
         )
     }
 }
+
 
 @Composable
 private fun rememberSignInInputStates(
@@ -306,7 +336,7 @@ private fun rememberSignUpInputStates(
 }
 
 @Composable
-private fun AuthSignInContent(
+private fun AuthSignInSection(
     state: AuthSignInState,
     onIntent: (AuthSignInIntent) -> Unit,
     signInInputStates: SignInInputStates,
@@ -399,6 +429,43 @@ private fun AuthSignInContent(
                 .padding(vertical = style.fingerprintPaddingTop)
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
+@Composable
+private fun ShowSelectCountryBottomSheet(
+    state: AuthSignInState,
+    onIntent: (AuthSignInIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val bottomSheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
+    val searchQueryState = rememberTextFieldState()
+
+    LaunchedEffect(searchQueryState) {
+        snapshotFlow { searchQueryState.text.toString() }
+            .distinctUntilChanged()
+            .debounce(300.milliseconds)
+            .collect {
+                onIntent(AuthSignInIntent.OnSearchCountry(it))
+            }
+    }
+
+    CountryBottomSheet(
+        countries = state.countryPicker,
+        selectedCountry = state.currentCountrySelected,
+        searchQueryState = searchQueryState,
+        onSelectCountry = { country ->
+            onIntent(AuthSignInIntent.SelectedCountry(country))
+        },
+        onDismiss = {
+            onIntent(AuthSignInIntent.ToggleCountryBottomSheetVisibility)
+        },
+        sheetState = bottomSheetState,
+        modifier = modifier
+    )
 }
 
 @ThemePreviews

@@ -53,15 +53,15 @@ fun AuthSignInForm(
             inputMode = formState.inputMode,
             emailState = emailState,
             phoneState = phoneState,
-            countryCode = formState.countryCode,
-            countryFlag = formState.countryFlagRes,
+            countryDialCode = formState.country.dialCode,
+            countryFlag = formState.country.flagRes,
             emailError = formState.emailError?.asString(),
             phoneError = formState.phoneError?.asString(),
             onModeChange = {
                 onIntent(AuthSignInIntent.ChangeInputMode(it))
             },
             onCountryClick = {
-                onIntent(AuthSignInIntent.ToggleCountryPopupVisibility)
+                onIntent(AuthSignInIntent.ToggleCountryBottomSheetVisibility)
             },
             isCountryPickerExpanded = formState.isCountryPickerOpen
         )

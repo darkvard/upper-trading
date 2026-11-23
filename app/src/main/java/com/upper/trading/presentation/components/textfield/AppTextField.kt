@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -200,7 +201,7 @@ fun AppSecureTextField(
 @Composable
 fun AppPhoneTextField(
     state: TextFieldState,
-    countryCode: String,
+    countryDialCode: String,
     @DrawableRes countryFlag: Int,
     onCountryClick: () -> Unit,
     modifier: Modifier = Modifier.fillMaxWidth(),
@@ -233,7 +234,7 @@ fun AppPhoneTextField(
         onKeyboardAction = onKeyboardAction,
         leadingContent = {
             PhoneCountryPrefix(
-                countryCode = countryCode,
+                countryDialCode = countryDialCode,
                 countryFlag = countryFlag,
                 onClick = onCountryClick,
                 enabled = enabled
@@ -261,8 +262,8 @@ fun PreviewAppTextField() {
         var isPhoneMode by remember { mutableStateOf(true) }
         var isPasswordHidden by remember { mutableStateOf(true) }
         var isCountryPickerOpen by remember { mutableStateOf(false) }
-        var selectedCountryCode by remember { mutableStateOf("+84") }
-        var selectedCountryFlag by remember { mutableStateOf(R.drawable.ic_flag_vn) }
+        var selectedCountryDialCode by remember { mutableStateOf("+84") }
+        var selectedCountryFlag by remember { mutableIntStateOf(R.drawable.ic_flag_vn) }
 
         Column(
             modifier = Modifier
@@ -292,7 +293,7 @@ fun PreviewAppTextField() {
                 } else {
                     AppPhoneTextField(
                         state = phoneState,
-                        countryCode = selectedCountryCode,
+                        countryDialCode = selectedCountryDialCode,
                         countryFlag = selectedCountryFlag,
                         isExpanded = isCountryPickerOpen,
                         onCountryClick = {

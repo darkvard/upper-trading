@@ -6,7 +6,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -20,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import com.upper.trading.R
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
@@ -50,7 +54,7 @@ fun AuthInputModeField(
     inputMode: AuthInputMode,
     emailState: TextFieldState,
     phoneState: TextFieldState,
-    countryCode: String,
+    countryDialCode: String,
     @DrawableRes countryFlag: Int,
     onModeChange: (AuthInputMode) -> Unit,
     onCountryClick: () -> Unit,
@@ -99,7 +103,7 @@ fun AuthInputModeField(
             AuthInputMode.PHONE -> {
                 AppPhoneTextField(
                     state = phoneState,
-                    countryCode = countryCode,
+                    countryDialCode = countryDialCode,
                     countryFlag = countryFlag,
                     onCountryClick = onCountryClick,
                     modifier = modifier,
@@ -128,21 +132,39 @@ fun AuthInputModeField(
 @Composable
 fun PreviewAuthInputModeField() {
     TradingPreview {
-        var inputMode by remember { mutableStateOf(AuthInputMode.EMAIL) }
+        var emailInputMode by remember { mutableStateOf(AuthInputMode.EMAIL) }
+        var phoneInputMode by remember { mutableStateOf(AuthInputMode.PHONE) }
         val emailState = rememberTextFieldState(initialText = "")
         val phoneState = rememberTextFieldState(initialText = "")
         var isCountryPickerOpen by remember { mutableStateOf(false) }
 
-        AuthInputModeField(
-            authTab = AuthTab.SIGN_IN,
-            inputMode = inputMode,
-            emailState = emailState,
-            phoneState = phoneState,
-            countryCode = "+84",
-            countryFlag = R.drawable.ic_flag_vn,
-            onModeChange = { inputMode = it },
-            onCountryClick = { isCountryPickerOpen = !isCountryPickerOpen },
-            isCountryPickerExpanded = isCountryPickerOpen
-        )
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            AuthInputModeField(
+                authTab = AuthTab.SIGN_IN,
+                inputMode = emailInputMode,
+                emailState = emailState,
+                phoneState = phoneState,
+                countryDialCode = "+84",
+                countryFlag = R.drawable.ic_flag_vn,
+                onModeChange = { emailInputMode = it },
+                onCountryClick = { isCountryPickerOpen = !isCountryPickerOpen },
+                isCountryPickerExpanded = isCountryPickerOpen
+            )
+
+            AuthInputModeField(
+                authTab = AuthTab.SIGN_IN,
+                inputMode = phoneInputMode,
+                emailState = emailState,
+                phoneState = phoneState,
+                countryDialCode = "+84",
+                countryFlag = R.drawable.ic_flag_vn,
+                onModeChange = { emailInputMode = it },
+                onCountryClick = { isCountryPickerOpen = !isCountryPickerOpen },
+                isCountryPickerExpanded = isCountryPickerOpen
+            )
+        }
     }
 }

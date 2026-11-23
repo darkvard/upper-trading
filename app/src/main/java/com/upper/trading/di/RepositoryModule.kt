@@ -1,8 +1,10 @@
 package com.upper.trading.di
 
 import com.upper.trading.data.repository.AuthRepositoryImpl
+import com.upper.trading.data.repository.CountryRepositoryImpl
 import com.upper.trading.data.repository.OnboardingRepositoryImpl
 import com.upper.trading.domain.repository.AuthRepository
+import com.upper.trading.domain.repository.CountryRepository
 import com.upper.trading.domain.repository.OnboardingRepository
 import dagger.Binds
 import dagger.Module
@@ -25,4 +27,10 @@ abstract class RepositoryModule {
     abstract fun bindAuthRepository(
         impl: AuthRepositoryImpl
     ): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCountryRepository(
+        impl: CountryRepositoryImpl
+    ): CountryRepository
 }

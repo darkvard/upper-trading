@@ -3,18 +3,26 @@ package com.upper.trading.presentation.features.auth.signin
 import androidx.lifecycle.viewModelScope
 import com.upper.trading.R
 import com.upper.trading.core.utils.UiText
+import com.upper.trading.core.utils.UiText.StringResource
+import com.upper.trading.domain.model.Country
+import com.upper.trading.domain.model.CountryPickerData
 import com.upper.trading.domain.model.SignInCredentials
 import com.upper.trading.domain.model.SignUpCredentials
 import com.upper.trading.domain.usecase.auth.SignInUseCase
 import com.upper.trading.domain.usecase.auth.SignUpUseCase
+import com.upper.trading.domain.usecase.country.GetDefaultCountryUseCase
+import com.upper.trading.domain.usecase.country.GetGroupedCountriesUseCase
+import com.upper.trading.domain.usecase.country.GetPopularCountriesUseCase
 import com.upper.trading.domain.validator.UserCredentialValidator
 import com.upper.trading.presentation.base.BaseViewModel
+import com.upper.trading.presentation.features.auth.signin.AuthSignInEffect.ShowToast
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -34,7 +42,10 @@ class AuthSignInViewModel @AssistedInject constructor(
     @Assisted("fromOnboarding") private val fromOnboarding: Boolean,
     private val validator: UserCredentialValidator,
     private val signInUseCase: SignInUseCase,
-    private val signUpUseCase: SignUpUseCase
+    private val signUpUseCase: SignUpUseCase,
+    private val getPopularCountries: GetPopularCountriesUseCase,
+    private val getGroupedCountries: GetGroupedCountriesUseCase,
+    private val getDefaultCountry: GetDefaultCountryUseCase
 ) : BaseViewModel<AuthSignInState, AuthSignInIntent, AuthSignInEffect>(
     AuthSignInState(
         authTab = if (isSignUp) AuthTab.SIGN_UP else AuthTab.SIGN_IN
@@ -55,6 +66,30 @@ class AuthSignInViewModel @AssistedInject constructor(
 
     companion object {
         private const val TYPING_DEBOUNCE_MS = 600L
+    }
+
+    private var cachedGroupedCountries: Map<Char, List<Country>> = emptyMap()
+
+    init {
+        setupInitialCountries()
+    }
+
+    private fun setupInitialCountries() {
+        cachedGroupedCountries = getGroupedCountries()
+
+        val initialPickerData = CountryPickerData(
+            popularCountries = getPopularCountries().toPersistentList(),
+            groupedCountries = cachedGroupedCountries.toPersistentMap()
+        )
+        val defaultCountry = getDefaultCountry() ?: Country()
+
+        setState {
+            copy(
+                countryPicker = initialPickerData,
+                signInForm = signInForm.copy(country = defaultCountry),
+                signUpForm = signUpForm.copy(country = defaultCountry)
+            )
+        }
     }
 
     override fun onIntent(intent: AuthSignInIntent) {
@@ -102,7 +137,8 @@ class AuthSignInViewModel @AssistedInject constructor(
 
             is AuthSignInIntent.OnEmailChanged -> {
                 val isSignIn = currentState.authTab == AuthTab.SIGN_IN
-                val hasSubmitted = if (isSignIn) currentState.signInForm.hasSubmitted else currentState.signUpForm.hasSubmitted
+                val hasSubmitted =
+                    if (isSignIn) currentState.signInForm.hasSubmitted else currentState.signUpForm.hasSubmitted
                 if (isSignIn) {
                     setState { copy(signInForm = signInForm.copy(email = intent.email)) }
                 } else {
@@ -122,7 +158,8 @@ class AuthSignInViewModel @AssistedInject constructor(
 
             is AuthSignInIntent.OnPhoneChanged -> {
                 val isSignIn = currentState.authTab == AuthTab.SIGN_IN
-                val hasSubmitted = if (isSignIn) currentState.signInForm.hasSubmitted else currentState.signUpForm.hasSubmitted
+                val hasSubmitted =
+                    if (isSignIn) currentState.signInForm.hasSubmitted else currentState.signUpForm.hasSubmitted
                 if (isSignIn) {
                     setState { copy(signInForm = signInForm.copy(phoneNumber = intent.phone)) }
                 } else {
@@ -140,64 +177,37 @@ class AuthSignInViewModel @AssistedInject constructor(
                 }
             }
 
-            is AuthSignInIntent.OnCountryCodeChanged -> {
-                setState {
-                    if (authTab == AuthTab.SIGN_IN) {
-                        copy(signInForm = signInForm.copy(countryCode = intent.code))
-                    } else {
-                        copy(signUpForm = signUpForm.copy(countryCode = intent.code))
-                    }
-                }
-            }
-
-            is AuthSignInIntent.SelectCountry -> {
-                setState {
-                    if (authTab == AuthTab.SIGN_IN) {
-                        copy(
-                            signInForm = signInForm.copy(
-                                countryCode = intent.code,
-                                countryFlagRes = intent.flagRes,
-                                isCountryPickerOpen = false
-                            )
-                        )
-                    } else {
-                        copy(
-                            signUpForm = signUpForm.copy(
-                                countryCode = intent.code,
-                                countryFlagRes = intent.flagRes,
-                                isCountryPickerOpen = false
-                            )
-                        )
-                    }
-                }
-            }
-
             is AuthSignInIntent.OnPasswordChanged -> {
                 if (currentState.authTab == AuthTab.SIGN_IN) {
                     val hasSubmitted = currentState.signInForm.hasSubmitted
                     setState { copy(signInForm = signInForm.copy(password = intent.password)) }
-                    passwordValidationJob = passwordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
-                        val result = validator.validatePassword(intent.password, isSubmit = hasSubmitted)
-                        setState { copy(signInForm = signInForm.copy(passwordError = result.errorMessage)) }
-                    }
+                    passwordValidationJob =
+                        passwordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
+                            val result =
+                                validator.validatePassword(intent.password, isSubmit = hasSubmitted)
+                            setState { copy(signInForm = signInForm.copy(passwordError = result.errorMessage)) }
+                        }
                 } else {
                     val hasSubmitted = currentState.signUpForm.hasSubmitted
                     setState { copy(signUpForm = signUpForm.copy(password = intent.password)) }
-                    passwordValidationJob = passwordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
-                        val result = validator.validatePassword(intent.password, isSubmit = hasSubmitted)
-                        setState { copy(signUpForm = signUpForm.copy(passwordError = result.errorMessage)) }
-                    }
+                    passwordValidationJob =
+                        passwordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
+                            val result =
+                                validator.validatePassword(intent.password, isSubmit = hasSubmitted)
+                            setState { copy(signUpForm = signUpForm.copy(passwordError = result.errorMessage)) }
+                        }
                     // Re-validate confirm password if it was already filled or if form was submitted
                     val confirmPassword = currentState.signUpForm.confirmPassword
                     if (confirmPassword.isNotEmpty() || hasSubmitted) {
-                        confirmPasswordValidationJob = confirmPasswordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
-                            val result = validator.validateConfirmPassword(
-                                password = intent.password,
-                                confirmPassword = confirmPassword,
-                                isSubmit = hasSubmitted
-                            )
-                            setState { copy(signUpForm = signUpForm.copy(confirmPasswordError = result.errorMessage)) }
-                        }
+                        confirmPasswordValidationJob =
+                            confirmPasswordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
+                                val result = validator.validateConfirmPassword(
+                                    password = intent.password,
+                                    confirmPassword = confirmPassword,
+                                    isSubmit = hasSubmitted
+                                )
+                                setState { copy(signUpForm = signUpForm.copy(confirmPasswordError = result.errorMessage)) }
+                            }
                     }
                 }
             }
@@ -205,14 +215,15 @@ class AuthSignInViewModel @AssistedInject constructor(
             is AuthSignInIntent.OnConfirmPasswordChanged -> {
                 val hasSubmitted = currentState.signUpForm.hasSubmitted
                 setState { copy(signUpForm = signUpForm.copy(confirmPassword = intent.confirmPassword)) }
-                confirmPasswordValidationJob = confirmPasswordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
-                    val result = validator.validateConfirmPassword(
-                        password = currentState.signUpForm.password,
-                        confirmPassword = intent.confirmPassword,
-                        isSubmit = hasSubmitted
-                    )
-                    setState { copy(signUpForm = signUpForm.copy(confirmPasswordError = result.errorMessage)) }
-                }
+                confirmPasswordValidationJob =
+                    confirmPasswordValidationJob.launchDebounced(TYPING_DEBOUNCE_MS) {
+                        val result = validator.validateConfirmPassword(
+                            password = currentState.signUpForm.password,
+                            confirmPassword = intent.confirmPassword,
+                            isSubmit = hasSubmitted
+                        )
+                        setState { copy(signUpForm = signUpForm.copy(confirmPasswordError = result.errorMessage)) }
+                    }
             }
 
             AuthSignInIntent.TogglePasswordVisibility -> {
@@ -231,12 +242,40 @@ class AuthSignInViewModel @AssistedInject constructor(
                 }
             }
 
-            AuthSignInIntent.ToggleCountryPopupVisibility -> {
+            is AuthSignInIntent.OnSearchCountry -> {
+                val filtered = getGroupedCountries(intent.query)
+                setState {
+                    copy(countryPicker = countryPicker.copy(groupedCountries = filtered.toPersistentMap()))
+                }
+            }
+
+            is AuthSignInIntent.SelectedCountry -> {
                 setState {
                     if (authTab == AuthTab.SIGN_IN) {
-                        copy(signInForm = signInForm.copy(isCountryPickerOpen = !signInForm.isCountryPickerOpen))
+                        copy(signInForm = signInForm.copy(country = intent.country))
                     } else {
-                        copy(signUpForm = signUpForm.copy(isCountryPickerOpen = !signUpForm.isCountryPickerOpen))
+                        copy(signUpForm = signUpForm.copy(country = intent.country))
+                    }
+                }
+            }
+
+            AuthSignInIntent.ToggleCountryBottomSheetVisibility -> {
+                setState {
+                    val isOpen = !isCurrentFormOpenCountryBottomSheet
+                    val resetPicker = if (!isOpen) {
+                        countryPicker.copy(groupedCountries = cachedGroupedCountries.toPersistentMap())
+                    } else countryPicker
+
+                    if (authTab == AuthTab.SIGN_IN) {
+                        copy(
+                            signInForm = signInForm.copy(isCountryPickerOpen = isOpen),
+                            countryPicker = resetPicker
+                        )
+                    } else {
+                        copy(
+                            signUpForm = signUpForm.copy(isCountryPickerOpen = isOpen),
+                            countryPicker = resetPicker
+                        )
                     }
                 }
             }
@@ -272,11 +311,11 @@ class AuthSignInViewModel @AssistedInject constructor(
             }
 
             AuthSignInIntent.SignInWithGoogle -> {
-                sendEffect(AuthSignInEffect.ShowToast(UiText.StringResource(R.string.msg_google_sign_in)))
+                sendEffect(ShowToast(StringResource(R.string.msg_google_sign_in)))
             }
 
             AuthSignInIntent.SignInWithApple -> {
-                sendEffect(AuthSignInEffect.ShowToast(UiText.StringResource(R.string.msg_apple_sign_in)))
+                sendEffect(ShowToast(StringResource(R.string.msg_apple_sign_in)))
             }
 
             AuthSignInIntent.SignInWithBiometric -> {
@@ -335,7 +374,7 @@ class AuthSignInViewModel @AssistedInject constructor(
                         val destination = if (form.inputMode == AuthInputMode.EMAIL) {
                             form.email
                         } else {
-                            "${form.countryCode} ${form.phoneNumber}"
+                            "${form.country.code} ${form.phoneNumber}"
                         }
                         sendEffect(AuthSignInEffect.NavigateOTPScreen(destination))
                     } else {
@@ -403,8 +442,7 @@ class AuthSignInViewModel @AssistedInject constructor(
                                 inputMode = form.inputMode,
                                 email = form.email,
                                 phoneNumber = form.phoneNumber,
-                                countryCode = form.countryCode,
-                                countryFlagRes = form.countryFlagRes,
+                                country = form.country,
                                 emailError = null,
                                 phoneError = null,
                                 passwordError = null
@@ -433,7 +471,7 @@ class AuthSignInViewModel @AssistedInject constructor(
             SignInCredentials.Email(email = email.trim(), password = password)
         } else {
             SignInCredentials.Phone(
-                countryCode = countryCode,
+                countryDialCode = country.code,
                 phone = phoneNumber.trim(),
                 password = password
             )
@@ -445,7 +483,7 @@ class AuthSignInViewModel @AssistedInject constructor(
             SignUpCredentials.Email(email = email.trim(), password = password)
         } else {
             SignUpCredentials.Phone(
-                countryCode = countryCode,
+                countryDialCode = country.code,
                 phone = phoneNumber.trim(),
                 password = password
             )

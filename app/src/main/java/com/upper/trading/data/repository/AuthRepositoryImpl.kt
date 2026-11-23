@@ -29,7 +29,7 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
 
         val destination = when (credentials) {
             is SignUpCredentials.Email -> credentials.email
-            is SignUpCredentials.Phone -> "${credentials.countryCode}${credentials.phone}"
+            is SignUpCredentials.Phone -> "${credentials.countryDialCode}${credentials.phone}"
         }
         return Result.success(destination)
     }

@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 fun Modifier.bounceClick(
     scaleDown: Float = 0.95f,
     throttleTimeMs: Long = 600L,
+    enabled: Boolean = true,
     onCLick: () -> Unit
 ): Modifier {
     val interactionSource = remember { MutableInteractionSource() }
@@ -31,8 +32,8 @@ fun Modifier.bounceClick(
     val coroutineScope = rememberCoroutineScope()
     val scale = remember { Animatable(1f) }
 
-    LaunchedEffect(isPressed) {
-        if (isPressed) {
+    LaunchedEffect(isPressed, enabled) {
+        if (enabled && isPressed) {
             scale.animateTo(
                 targetValue = scaleDown,
                 animationSpec = spring(
@@ -58,6 +59,7 @@ fun Modifier.bounceClick(
             scaleY = scale.value
         }
         .clickable(
+            enabled = enabled,
             interactionSource = interactionSource,
             indication = null,
             onClick = {

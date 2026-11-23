@@ -30,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.upper.trading.R
+import com.upper.trading.core.utils.bounceClick
 import com.upper.trading.core.utils.throttleClick
 
 @Composable
@@ -59,7 +60,7 @@ internal fun InputPlaceholderAndField(
 
 @Composable
 internal fun PhoneCountryPrefix(
-    countryCode: String,
+    countryDialCode: String,
     @DrawableRes countryFlag: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -68,12 +69,7 @@ internal fun PhoneCountryPrefix(
 ) {
     Row(
         modifier = modifier
-            .clickable(
-                enabled = enabled,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            ),
+            .bounceClick(enabled = enabled, onCLick = onClick),
         horizontalArrangement = Arrangement.spacedBy(style.inputFrameSpacing),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -84,7 +80,7 @@ internal fun PhoneCountryPrefix(
             contentScale = ContentScale.Crop
         )
         Text(
-            text = countryCode,
+            text = countryDialCode,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -111,12 +107,7 @@ internal fun CountryDropdownIcon(
         modifier = modifier
             .size(style.iconSize)
             .graphicsLayer { rotationZ = rotation }
-            .clickable(
-                enabled = enabled,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            ),
+            .bounceClick(enabled = enabled, onCLick = onClick),
         tint = MaterialTheme.colorScheme.onBackground
     )
 }
