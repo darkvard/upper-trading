@@ -1,17 +1,34 @@
 package com.upper.trading.presentation.navigation
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.upper.trading.R
+import com.upper.trading.core.utils.UiText
+import com.upper.trading.core.utils.findActivity
+import com.upper.trading.presentation.components.layout.FlowProgressState
+import com.upper.trading.presentation.components.layout.LocalFlowProgress
+import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
 import com.upper.trading.presentation.features.auth.otp.AuthOtpScreen
 import com.upper.trading.presentation.features.auth.signin.AuthSignInRoute
 import com.upper.trading.presentation.features.card.AddCardScreen
@@ -48,40 +65,77 @@ inline fun <reified K : AppNavKey> EntryProviderScope<AppNavKey>.stepEntry(
 fun AppNavDisplay(
     navigator: Navigator<AppNavKey> = rememberAppNavigator(startDestination = AuthNavKey.SignIn())  // todo default = SplashNavKey
 ) {
-    NavDisplay(
-        backStack = navigator.backStack,
-        onBack = { navigator.pop() },
-        entryDecorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator()
-        ),
-        transitionSpec = {
-            val isFromSplash = initialState.metadata[NAV_METADATA_SPLASH] == true
-            val isStepTransition = initialState.metadata[NAV_METADATA_PROGRESS_STEP] == true &&
-                    targetState.metadata[NAV_METADATA_PROGRESS_STEP] == true
+    val flowProgress = remember { FlowProgressState() }
+    val context = LocalContext.current
+    val snackbar = LocalAppSnackbar.current
+    var lastBackPressTime by remember { mutableLongStateOf(0L) }
 
-            if (isFromSplash || isStepTransition) {
-                ContentTransform(
-                    targetContentEnter = EnterTransition.None,
-                    initialContentExit = ExitTransition.None
-                )
-            } else {
-                ContentTransform(
-                    targetContentEnter = fadeIn(tween(300)),
-                    initialContentExit = fadeOut(tween(300))
-                )
-            }
-        },
-        entryProvider = entryProvider {
-            splashGraph(navigator)
-            onboardingGraph(navigator)
-            homeGraph(navigator)
-            authGraph(navigator)
-            profileGraph(navigator)
-            kycGraph(navigator)
-            cardGraph(navigator)
+    // Intercept back when at root screen (Double-back to exit)
+    BackHandler(enabled = navigator.backStack.size <= 1) {
+        val now = System.currentTimeMillis()
+        if (now - lastBackPressTime < 2000L) {
+            context.findActivity()?.finish()
+        } else {
+            lastBackPressTime = now
+            snackbar.showInfo(
+                title = UiText.StringResource(R.string.msg_press_back_again_to_exit),
+                icon = Icons.AutoMirrored.Rounded.ExitToApp
+            )
         }
-    )
+    }
+
+    CompositionLocalProvider(LocalFlowProgress provides flowProgress) {
+        NavDisplay(
+            backStack = navigator.backStack,
+            onBack = { navigator.pop() },
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator()
+            ),
+            transitionSpec = {
+                val isFromSplash = initialState.metadata[NAV_METADATA_SPLASH] == true
+                val isStepTransition = initialState.metadata[NAV_METADATA_PROGRESS_STEP] == true &&
+                        targetState.metadata[NAV_METADATA_PROGRESS_STEP] == true
+
+                if (isFromSplash || isStepTransition) {
+                    ContentTransform(
+                        targetContentEnter = EnterTransition.None,
+                        initialContentExit = ExitTransition.None
+                    )
+                } else {
+                    ContentTransform(
+                        targetContentEnter = fadeIn(tween(300)),
+                        initialContentExit = fadeOut(tween(300))
+                    )
+                }
+            },
+            popTransitionSpec = {
+                val isStepTransition = initialState.metadata[NAV_METADATA_PROGRESS_STEP] == true &&
+                        targetState.metadata[NAV_METADATA_PROGRESS_STEP] == true
+
+                if (isStepTransition) {
+                    ContentTransform(
+                        targetContentEnter = EnterTransition.None,
+                        initialContentExit = ExitTransition.None
+                    )
+                } else {
+                    ContentTransform(
+                        targetContentEnter = fadeIn(tween(300)),
+                        initialContentExit = fadeOut(tween(300))
+                    )
+                }
+            },
+            entryProvider = entryProvider {
+                splashGraph(navigator)
+                onboardingGraph(navigator)
+                homeGraph(navigator)
+                authGraph(navigator)
+                profileGraph(navigator)
+                kycGraph(navigator)
+                cardGraph(navigator)
+            }
+        )
+    }
 }
 
 fun EntryProviderScope<AppNavKey>.homeGraph(navigator: Navigator<AppNavKey>) {
@@ -143,12 +197,13 @@ fun EntryProviderScope<AppNavKey>.authGraph(navigator: Navigator<AppNavKey>) {
     entry<AuthNavKey.SignIn>(
         metadata = { key -> mapOf(NAV_METADATA_PROGRESS_STEP to key.showProgressBar) }
     ) { entry ->
+        val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         AuthSignInRoute(
             isSignUp = entry.isSignUp,
             showProgressBar = entry.showProgressBar,
-            onNavigateBack = { navigator.pop() },
+            onNavigateBack = { backDispatcher?.onBackPressed() ?: navigator.pop() },
             onNavigateToOtp = { destination ->
-                navigator.replaceAll(
+                navigator.push(
                     AuthNavKey.Otp(
                         destination = destination,
                         fromOnboarding = entry.showProgressBar

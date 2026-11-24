@@ -19,8 +19,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -43,6 +43,13 @@ data class ProgressBarState(
     val total: Float = 9f,
     val from: Float = (current - 1f).coerceAtLeast(0f),
 )
+
+@Stable
+class FlowProgressState(initialFraction: Float = 0f) {
+    val progress = Animatable(initialFraction)
+}
+
+val LocalFlowProgress = staticCompositionLocalOf { FlowProgressState() }
 
 object ProgressBarActionDefaults {
     val style = ProgressBarStyle()
@@ -105,17 +112,17 @@ fun AnimateProgressBar(
     style: ProgressBarStyle
 ) {
     val safeTotal = if (state.total <= 0f) 1f else state.total
-    val initialFraction = (state.from / safeTotal).coerceIn(0f, 1f)
     val targetFraction = (state.current / safeTotal).coerceIn(0f, 1f)
-
-    // Animates smoothly from previous step to targetFraction
-    val progress = remember { Animatable(initialValue = initialFraction) }
+    val flowProgress = LocalFlowProgress.current
 
     LaunchedEffect(targetFraction) {
-        progress.animateTo(
+        if (flowProgress.progress.value == 0f && state.from > 0f) {
+            flowProgress.progress.snapTo((state.from / safeTotal).coerceIn(0f, 1f))
+        }
+        flowProgress.progress.animateTo(
             targetValue = targetFraction,
             animationSpec = tween(
-                durationMillis = 600,
+                durationMillis = 500,
                 easing = FastOutSlowInEasing
             )
         )
@@ -127,10 +134,10 @@ fun AnimateProgressBar(
             .height(style.progressBarHeight)
             .background(MaterialTheme.colorScheme.outline)
     ) {
-        if (progress.value > 0f) {
+        if (flowProgress.progress.value > 0f) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(progress.value.coerceIn(0f, 1f))
+                    .fillMaxWidth(flowProgress.progress.value.coerceIn(0f, 1f))
                     .height(style.progressBarHeight)
                     .background(MaterialTheme.colorScheme.primary)
             )

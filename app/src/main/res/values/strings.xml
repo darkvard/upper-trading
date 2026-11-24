@@ -49,5 +49,6 @@
     <string name="select_country">Select Country</string>
     <string name="phone_number">Phone Number</string>
     <string name="search_country_or_dial_code">Search country or dial code</string>
-    <string name="popular_countries">Polular Countries</string>
+    <string name="popular_countries">Popular Countries</string>
+    <string name="msg_press_back_again_to_exit">Press back again to exit</string>
 </resources>

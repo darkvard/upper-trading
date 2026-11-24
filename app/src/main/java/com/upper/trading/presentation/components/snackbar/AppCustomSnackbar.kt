@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Chat
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Error
@@ -49,8 +51,12 @@ import com.upper.trading.presentation.theme.green2
 import com.upper.trading.presentation.theme.green5
 import com.upper.trading.presentation.theme.green6
 import com.upper.trading.presentation.theme.green7
+import com.upper.trading.presentation.theme.purple05
+import com.upper.trading.presentation.theme.purple2
 import com.upper.trading.presentation.theme.purple4
 import com.upper.trading.presentation.theme.purple5
+import com.upper.trading.presentation.theme.purple6
+import com.upper.trading.presentation.theme.purple7
 import com.upper.trading.presentation.theme.red05
 import com.upper.trading.presentation.theme.red2
 import com.upper.trading.presentation.theme.red5
@@ -105,6 +111,12 @@ fun AppCustomSnackbar(
         } else {
             Triple(Color.White, blueShades6, purple5)
         }
+
+        SnackbarType.INFO -> if (isDark) {
+            Triple(darkBlueShades5, purple7, purple5)
+        } else {
+            Triple(purple05, purple2, purple6)
+        }
     }
 
     val titleColor = if (isDark) Color.White else blackShades10
@@ -122,26 +134,41 @@ fun AppCustomSnackbar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(modifier = Modifier.size(style.iconSize), contentAlignment = Alignment.Center) {
-            when (data.type) {
-                SnackbarType.SUCCESS -> Icon(
-                    imageVector = Icons.Rounded.CheckCircle,
-                    contentDescription = "Success",
+            val customIcon = data.icon
+            if (customIcon != null) {
+                Icon(
+                    imageVector = customIcon,
+                    contentDescription = null,
                     tint = accentColor
                 )
-
-                SnackbarType.ERROR -> {
-                    Icon(
-                        imageVector = Icons.Rounded.Error,
-                        contentDescription = "Error",
+            } else {
+                when (data.type) {
+                    SnackbarType.SUCCESS -> Icon(
+                        imageVector = Icons.Rounded.CheckCircle,
+                        contentDescription = "Success",
                         tint = accentColor
                     )
-                }
 
-                SnackbarType.LOADING -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(style.spinnerSize),
-                        color = accentColor,
-                        strokeWidth = style.spinnerStrokeWidth
+                    SnackbarType.ERROR -> {
+                        Icon(
+                            imageVector = Icons.Rounded.Error,
+                            contentDescription = "Error",
+                            tint = accentColor
+                        )
+                    }
+
+                    SnackbarType.LOADING -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(style.spinnerSize),
+                            color = accentColor,
+                            strokeWidth = style.spinnerStrokeWidth
+                        )
+                    }
+
+                    SnackbarType.INFO -> Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.Chat,
+                        contentDescription = "Info",
+                        tint = accentColor
                     )
                 }
             }
@@ -185,7 +212,7 @@ fun AppCustomSnackbar(
                     .padding(horizontal = style.actionPaddingHorizontal, vertical = style.actionPaddingVertical)
                     .basicMarquee()
             )
-        } else {
+        } else if (data.type != SnackbarType.INFO) {
             Icon(
                 imageVector = Icons.Rounded.Close,
                 contentDescription = "Close",
@@ -267,6 +294,17 @@ fun PreviewAppCustomSnackbar() {
                     type = SnackbarType.LOADING,
                     title = UiText.DynamicString("Placing your order."),
                     message = UiText.DynamicString("This may take a few seconds."),
+                ),
+                onDismiss = {
+
+                }
+            )
+
+            AppCustomSnackbar(
+                data = AppSnackbarData(
+                    type = SnackbarType.INFO,
+                    title = UiText.DynamicString("Press back again to exit"),
+                    icon = Icons.AutoMirrored.Rounded.ExitToApp
                 ),
                 onDismiss = {
 

@@ -44,9 +44,9 @@ object AppSnackbarAnimationDefaults {
     const val EXIT_SCALE = 0.96f
 
     // Display duration presets
-    const val DURATION_SHORT_MS = 2500L      // 2.5s: Success / Thông báo ngắn gọn
-    const val DURATION_DEFAULT_MS = 2500L    // 2.5s: Mặc định
-    const val DURATION_LONG_MS = 4000L       // 4.0s: Error / Thông báo dài hoặc có action
+    const val DURATION_SHORT_MS = 2500L
+    const val DURATION_DEFAULT_MS = 2500L
+    const val DURATION_LONG_MS = 4000L
     const val DEFAULT_DISPLAY_DURATION_MS = DURATION_DEFAULT_MS
 }
 

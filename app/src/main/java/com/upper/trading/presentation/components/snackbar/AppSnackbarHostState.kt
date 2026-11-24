@@ -7,11 +7,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.upper.trading.R
 import com.upper.trading.core.utils.UiText
 
 enum class SnackbarType {
-    SUCCESS, ERROR, LOADING
+    SUCCESS, ERROR, LOADING, INFO
 }
 
 @Stable
@@ -21,6 +22,7 @@ data class AppSnackbarData(
     val message: UiText? = null,
     val actionLabel: UiText? = null,
     val onAction: (() -> Unit)? = null,
+    val icon: ImageVector? = null,
     val durationMillis: Long? = AppSnackbarAnimationDefaults.DEFAULT_DISPLAY_DURATION_MS // null = infinity
 )
 
@@ -40,6 +42,7 @@ class AppSnackbarHostState(initialData: AppSnackbarData? = null) {
     fun showSuccess(
         title: UiText,
         message: UiText? = null,
+        icon: ImageVector? = null,
         durationMillis: Long? = AppSnackbarAnimationDefaults.DURATION_SHORT_MS
     ) {
         show(
@@ -47,6 +50,7 @@ class AppSnackbarHostState(initialData: AppSnackbarData? = null) {
                 type = SnackbarType.SUCCESS,
                 title = title,
                 message = message,
+                icon = icon,
                 durationMillis = durationMillis
             )
         )
@@ -55,11 +59,44 @@ class AppSnackbarHostState(initialData: AppSnackbarData? = null) {
     fun showSuccess(
         title: String,
         message: String? = null,
+        icon: ImageVector? = null,
         durationMillis: Long? = AppSnackbarAnimationDefaults.DURATION_SHORT_MS
     ) {
         showSuccess(
             title = UiText.DynamicString(title),
             message = message?.let { UiText.DynamicString(it) },
+            icon = icon,
+            durationMillis = durationMillis
+        )
+    }
+
+    fun showInfo(
+        title: UiText,
+        message: UiText? = null,
+        icon: ImageVector? = null,
+        durationMillis: Long? = AppSnackbarAnimationDefaults.DURATION_SHORT_MS
+    ) {
+        show(
+            AppSnackbarData(
+                type = SnackbarType.INFO,
+                title = title,
+                message = message,
+                icon = icon,
+                durationMillis = durationMillis
+            )
+        )
+    }
+
+    fun showInfo(
+        title: String,
+        message: String? = null,
+        icon: ImageVector? = null,
+        durationMillis: Long? = AppSnackbarAnimationDefaults.DURATION_SHORT_MS
+    ) {
+        showInfo(
+            title = UiText.DynamicString(title),
+            message = message?.let { UiText.DynamicString(it) },
+            icon = icon,
             durationMillis = durationMillis
         )
     }
@@ -69,6 +106,7 @@ class AppSnackbarHostState(initialData: AppSnackbarData? = null) {
         message: UiText? = null,
         actionLabel: UiText? = UiText.StringResource(R.string.retry),
         retryAction: (() -> Unit)? = null,
+        icon: ImageVector? = null,
         durationMillis: Long? = AppSnackbarAnimationDefaults.DURATION_LONG_MS
     ) {
         show(
@@ -78,6 +116,7 @@ class AppSnackbarHostState(initialData: AppSnackbarData? = null) {
                 message = message,
                 actionLabel = if (retryAction != null) actionLabel else null,
                 onAction = retryAction,
+                icon = icon,
                 durationMillis = durationMillis
             )
         )
@@ -88,6 +127,7 @@ class AppSnackbarHostState(initialData: AppSnackbarData? = null) {
         message: String? = null,
         actionLabel: UiText? = UiText.StringResource(R.string.retry),
         retryAction: (() -> Unit)? = null,
+        icon: ImageVector? = null,
         durationMillis: Long? = AppSnackbarAnimationDefaults.DURATION_LONG_MS
     ) {
         showError(
@@ -95,6 +135,7 @@ class AppSnackbarHostState(initialData: AppSnackbarData? = null) {
             message = message?.let { UiText.DynamicString(it) },
             actionLabel = actionLabel,
             retryAction = retryAction,
+            icon = icon,
             durationMillis = durationMillis
         )
     }
