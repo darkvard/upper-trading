@@ -1,16 +1,16 @@
-package com.upper.trading.data.storage
+package com.upper.trading.data.local.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.upper.trading.di.qualifier.AppDataStore
-import com.upper.trading.domain.storage.AppDataSource
+import com.upper.trading.domain.storage.AppDataStorage
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class AppDataSourceImpl @Inject constructor(
+class AppDataStorageImpl @Inject constructor(
     @param:AppDataStore private val dataStore: DataStore<Preferences>,
-) : AppDataSource {
+) : AppDataStorage {
 
     override val isOnboardingCompleted: Flow<Boolean>
         get() = dataStore.getPreference(PreferencesKeys.ONBOARDING_COMPLETED, false)

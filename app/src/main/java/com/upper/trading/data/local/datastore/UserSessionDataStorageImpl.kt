@@ -1,18 +1,18 @@
-package com.upper.trading.data.storage
+package com.upper.trading.data.local.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.upper.trading.data.storage.UserSessionDataSourceImpl.PreferencesKeys.ACCESS_TOKEN
-import com.upper.trading.data.storage.UserSessionDataSourceImpl.PreferencesKeys.REFRESH_TOKEN
+import com.upper.trading.data.local.datastore.UserSessionDataStorageImpl.PreferencesKeys.ACCESS_TOKEN
+import com.upper.trading.data.local.datastore.UserSessionDataStorageImpl.PreferencesKeys.REFRESH_TOKEN
 import com.upper.trading.di.qualifier.UserSessionDataStore
 import com.upper.trading.domain.storage.UserSessionDataStorage
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class UserSessionDataSourceImpl @Inject constructor(
+class UserSessionDataStorageImpl @Inject constructor(
     @param:UserSessionDataStore private val dataStore: DataStore<Preferences>,
 ) : UserSessionDataStorage {
 

@@ -1,4 +1,4 @@
-package com.upper.trading.data.storage
+package com.upper.trading.data.local.datastore
 
 
 import androidx.datastore.core.DataStore
