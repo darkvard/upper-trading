@@ -330,7 +330,16 @@ class AuthSignInViewModel @AssistedInject constructor(
             }
 
             AuthSignInIntent.SignInWithApple -> {
-                sendEffect(ShowToast(StringResource(R.string.msg_apple_sign_in)))
+                sendEffect(AuthSignInEffect.LaunchAppleSignIn)
+            }
+
+            is AuthSignInIntent.OnAppleSignInSuccess -> {
+                handleAppleSignIn(intent.idToken)
+            }
+
+            is AuthSignInIntent.OnAppleSignInFailed -> {
+                setState { copy(isLoading = false, generalError = intent.error) }
+                sendEffect(ShowToast(intent.error, isError = true))
             }
 
             AuthSignInIntent.SignInWithBiometric -> {
@@ -420,6 +429,28 @@ class AuthSignInViewModel @AssistedInject constructor(
                 }
                 .onFailure { error ->
                     val errorMsg = UiText.DynamicString(error.message ?: "Google Sign In failed")
+                    setState {
+                        copy(
+                            isLoading = false,
+                            generalError = errorMsg
+                        )
+                    }
+                    sendEffect(ShowToast(message = errorMsg, isError = true))
+                }
+        }
+    }
+
+    private fun handleAppleSignIn(idToken: String) {
+        viewModelScope.launch {
+            setState { copy(isLoading = true, generalError = null) }
+            signInUseCase(SignInCredentials.Apple(idToken))
+                .onSuccess {
+                    setState { copy(isLoading = false) }
+                    sendEffect(ShowToast(UiText.StringResource(R.string.msg_sign_in_success), isError = false))
+                    sendEffect(AuthSignInEffect.NavigateHome)
+                }
+                .onFailure { error ->
+                    val errorMsg = UiText.DynamicString(error.message ?: "Apple Sign In failed")
                     setState {
                         copy(
                             isLoading = false,
