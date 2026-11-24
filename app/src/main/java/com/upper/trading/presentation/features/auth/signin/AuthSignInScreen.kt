@@ -109,18 +109,14 @@ fun AuthSignInRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = LocalAppSnackbar.current
-    val coroutineScope = rememberCoroutineScope()
 
     ObserveAsEvents(events = viewModel.effect) { effect ->
         when (effect) {
             is AuthSignInEffect.ShowToast -> {
-                coroutineScope.launch {
-                    val isError = effect.message == UiText.StringResource(R.string.error_agree_terms)
-                    if (isError) {
-                        snackbar.showError(title = effect.message)
-                    } else {
-                        snackbar.showSuccess(title = effect.message)
-                    }
+                if (effect.isError) {
+                    snackbar.showError(title = effect.message)
+                } else {
+                    snackbar.showSuccess(title = effect.message)
                 }
             }
 

@@ -3,7 +3,7 @@ package com.upper.trading.data.repository
 import android.content.Context
 import android.telephony.TelephonyManager
 import com.upper.trading.data.config.RemoteConfigManager
-import com.upper.trading.data.datasource.CountryDataSource
+import com.upper.trading.data.local.datasource.CountryLocalDataSource
 import com.upper.trading.di.qualifier.DefaultDispatcher
 import com.upper.trading.domain.model.Country
 import com.upper.trading.domain.repository.CountryRepository
@@ -19,17 +19,17 @@ class CountryRepositoryImpl @Inject constructor(
 ) : CountryRepository {
 
     private val countryMap: Map<String, Country> by lazy {
-        CountryDataSource.COUNTRIES.associateBy { it.code.uppercase() }
+        CountryLocalDataSource.COUNTRIES.associateBy { it.code.uppercase() }
     }
 
     override suspend fun getCountries(): List<Country> = withContext(defaultDispatcher) {
-        CountryDataSource.COUNTRIES
+        CountryLocalDataSource.COUNTRIES
     }
 
     override suspend fun getPopularCountries(): List<Country> = withContext(defaultDispatcher) {
         remoteConfig.getConfigOnce(waitForRemote = true).popularCountryCodes
             .mapNotNull { code -> getCountryByCode(code) }
-            .ifEmpty { CountryDataSource.POPULAR_COUNTRY }
+            .ifEmpty { CountryLocalDataSource.POPULAR_COUNTRY }
     }
 
     override fun getCountryByCode(code: String): Country? {
@@ -54,4 +54,9 @@ class CountryRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getDefaultCountry(): Country = withContext(defaultDispatcher) {
+        getDeviceCountryCode()?.let {
+            getCountryByCode(it)
+        } ?: CountryLocalDataSource.DEFAULT_COUNTRY
+    }
 }

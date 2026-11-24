@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import com.upper.trading.R
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
-import com.upper.trading.data.datasource.CountryDataSource
+import com.upper.trading.data.local.datasource.CountryLocalDataSource
 import com.upper.trading.domain.model.Country
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
@@ -172,11 +172,11 @@ fun PreviewCountryContent() {
 
 
 internal fun mockPopularCountries(): ImmutableList<Country> {
-    return CountryDataSource.POPULAR_COUNTRY.toPersistentList()
+    return CountryLocalDataSource.POPULAR_COUNTRY.toPersistentList()
 }
 
 internal fun mockGroupedCountries(): ImmutableMap<Char, List<Country>> {
-    return CountryDataSource.COUNTRIES
+    return CountryLocalDataSource.COUNTRIES
         .sortedBy { it.name.lowercase() }
         .groupBy {
             it.name.firstOrNull()?.uppercaseChar() ?: '#'

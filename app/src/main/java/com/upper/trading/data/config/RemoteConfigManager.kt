@@ -3,7 +3,7 @@ package com.upper.trading.data.config
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.upper.trading.BuildConfig
-import com.upper.trading.data.datasource.CountryDataSource
+import com.upper.trading.data.local.datasource.CountryLocalDataSource
 import com.upper.trading.di.qualifier.ApplicationScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -82,9 +82,9 @@ class RemoteConfigManager @Inject constructor(
 
     private val defaultConfigMap: Map<String, Any> = mapOf(
         Keys.POPULAR_COUNTRY_CODES to Json.encodeToString(
-            CountryDataSource.POPULAR_COUNTRY.map { it.code }
+            CountryLocalDataSource.POPULAR_COUNTRY.map { it.code }
         ),
-        Keys.DEFAULT_COUNTRY_CODE to CountryDataSource.DEFAULT_COUNTRY.code
+        Keys.DEFAULT_COUNTRY_CODE to CountryLocalDataSource.DEFAULT_COUNTRY.code
     )
 
     object Keys {

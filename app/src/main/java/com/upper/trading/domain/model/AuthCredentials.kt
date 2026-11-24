@@ -4,8 +4,26 @@ data class AuthResult(
     val accessToken: String,
     val refreshToken: String,
     val userId: String = "",
-    val email: String? = null
+    val email: String? = null,
+    val accountCompletionState: AccountCompletionState? = null
 )
+
+data class AccountCompletionState(
+    val isPhoneVerified: Boolean = false,
+    val hasPasscode: Boolean = false,
+    val isProfileCompleted: Boolean = false,
+    val isAddressCompleted: Boolean = false,
+    val kycTier: String = "TIER_0_UNVERIFIED"
+)
+
+sealed interface OtpChannel {
+    data object Sms : OtpChannel
+    data object Email : OtpChannel
+}
+
+enum class OtpPurpose {
+    SIGN_UP, RESET_PASSWORD, CHANGE_PHONE, WITHDRAWAL
+}
 
 sealed interface SignInCredentials {
     data class Email(val email: String, val password: String) : SignInCredentials

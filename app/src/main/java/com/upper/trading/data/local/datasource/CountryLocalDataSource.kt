@@ -1,9 +1,9 @@
-package com.upper.trading.data.datasource
+package com.upper.trading.data.local.datasource
 
 import com.upper.trading.R
 import com.upper.trading.domain.model.Country
 
-object CountryDataSource {
+object CountryLocalDataSource {
 
     val COUNTRIES = listOf(
         Country("US", "United States", "+1", R.drawable.ic_flag_us),

@@ -24,13 +24,13 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindAuthRepository(
-        impl: AuthRepositoryImpl
-    ): AuthRepository
-
-    @Binds
-    @Singleton
     abstract fun bindCountryRepository(
         impl: CountryRepositoryImpl
     ): CountryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        impl: AuthRepositoryImpl
+    ): AuthRepository
 }

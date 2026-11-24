@@ -22,7 +22,6 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -376,7 +375,7 @@ class AuthSignInViewModel @AssistedInject constructor(
             signInUseCase(form.toCredentials())
                 .onSuccess {
                     setState { copy(isLoading = false) }
-                    sendEffect(AuthSignInEffect.ShowToast(UiText.StringResource(R.string.msg_sign_in_success)))
+                    sendEffect(AuthSignInEffect.ShowToast(UiText.StringResource(R.string.msg_sign_in_success), isError = false))
                     if (fromOnboarding) {
                         val destination = if (form.inputMode == AuthInputMode.EMAIL) {
                             form.email
@@ -389,12 +388,14 @@ class AuthSignInViewModel @AssistedInject constructor(
                     }
                 }
                 .onFailure { error ->
+                    val errorMsg = UiText.DynamicString(error.message ?: "Sign in failed")
                     setState {
                         copy(
                             isLoading = false,
-                            generalError = UiText.DynamicString(error.message ?: "Sign in failed")
+                            generalError = errorMsg
                         )
                     }
+                    sendEffect(AuthSignInEffect.ShowToast(message = errorMsg, isError = true))
                 }
         }
     }
@@ -409,7 +410,7 @@ class AuthSignInViewModel @AssistedInject constructor(
             isAgreeTerms = form.isAgreeTerms
         )
         if (validation.hasError) {
-            validation.termsError?.let { sendEffect(AuthSignInEffect.ShowToast(it)) }
+            validation.termsError?.let { sendEffect(AuthSignInEffect.ShowToast(it, isError = true)) }
             setState {
                 copy(
                     signUpForm = signUpForm.copy(
@@ -438,8 +439,13 @@ class AuthSignInViewModel @AssistedInject constructor(
                 )
             }
             signUpUseCase(form.toCredentials())
-                .onSuccess { destination ->
+                .onSuccess {
                     val isEmail = form.inputMode == AuthInputMode.EMAIL
+                    val destination = if (isEmail) {
+                        form.email
+                    } else {
+                        "${form.country.code} ${form.phoneNumber}"
+                    }
                     setState {
                         copy(
                             isLoading = false,
@@ -456,19 +462,21 @@ class AuthSignInViewModel @AssistedInject constructor(
                             )
                         )
                     }
-                    sendEffect(AuthSignInEffect.ShowToast(UiText.StringResource(R.string.msg_sign_up_success)))
+                    sendEffect(AuthSignInEffect.ShowToast(UiText.StringResource(R.string.msg_sign_up_success), isError = false))
                     if (!isEmail) {
                         // Phone sign up requires OTP verification (account is pending OTP)
                         sendEffect(AuthSignInEffect.NavigateOTPScreen(destination))
                     }
                 }
                 .onFailure { error ->
+                    val errorMsg = UiText.DynamicString(error.message ?: "Sign up failed")
                     setState {
                         copy(
                             isLoading = false,
-                            generalError = UiText.DynamicString(error.message ?: "Sign up failed")
+                            generalError = errorMsg
                         )
                     }
+                    sendEffect(AuthSignInEffect.ShowToast(message = errorMsg, isError = true))
                 }
         }
     }

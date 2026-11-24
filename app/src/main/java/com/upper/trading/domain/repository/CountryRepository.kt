@@ -10,4 +10,6 @@ interface CountryRepository {
     fun getCountryByCode(code: String): Country?
 
     suspend fun getDeviceCountryCode(): String?
+
+    suspend fun getDefaultCountry(): Country
 }

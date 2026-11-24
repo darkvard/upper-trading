@@ -148,7 +148,7 @@ fun EntryProviderScope<AppNavKey>.authGraph(navigator: Navigator<AppNavKey>) {
             showProgressBar = entry.showProgressBar,
             onNavigateBack = { navigator.pop() },
             onNavigateToOtp = { destination ->
-                navigator.push(
+                navigator.replaceAll(
                     AuthNavKey.Otp(
                         destination = destination,
                         fromOnboarding = entry.showProgressBar

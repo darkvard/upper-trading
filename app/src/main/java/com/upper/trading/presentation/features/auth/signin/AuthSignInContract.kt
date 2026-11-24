@@ -118,6 +118,6 @@ sealed interface AuthSignInEffect : UiEffect {
     data object NavigateBack : AuthSignInEffect
 
     // System interactions
-    data class ShowToast(val message: UiText) : AuthSignInEffect
+    data class ShowToast(val message: UiText, val isError: Boolean = false) : AuthSignInEffect
     data object LaunchBiometricPrompt : AuthSignInEffect
 }

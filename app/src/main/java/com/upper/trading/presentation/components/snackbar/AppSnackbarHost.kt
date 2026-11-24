@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.UiText
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 object AppSnackbarAnimationDefaults {
     const val ENTER_DURATION_MS = 300
@@ -40,7 +43,11 @@ object AppSnackbarAnimationDefaults {
     const val EXIT_OFFSET_MULTIPLIER = 2.0f
     const val EXIT_SCALE = 0.96f
 
-    const val DEFAULT_DISPLAY_DURATION_MS = 3500L
+    // Display duration presets
+    const val DURATION_SHORT_MS = 2500L      // 2.5s: Success / Thông báo ngắn gọn
+    const val DURATION_DEFAULT_MS = 2500L    // 2.5s: Mặc định
+    const val DURATION_LONG_MS = 4000L       // 4.0s: Error / Thông báo dài hoặc có action
+    const val DEFAULT_DISPLAY_DURATION_MS = DURATION_DEFAULT_MS
 }
 
 @Composable
@@ -53,6 +60,15 @@ fun AppSnackbarHost(
 
     if (current != null) {
         lastData = current
+    }
+
+    LaunchedEffect(current) {
+        if (current != null && current.durationMillis != null && current.durationMillis > 0) {
+            delay(current.durationMillis.milliseconds)
+            if (hostState.currentData == current) {
+                hostState.dismiss()
+            }
+        }
     }
 
     AnimatedVisibility(
