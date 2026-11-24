@@ -97,7 +97,7 @@ fun CountryBottomSheet(
     onDismiss: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     sheetMaxHeight: Dp? = null,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    sheetState: SheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden),
     style: CountryBottomSheetStyle = CountryBottomSheetDefaults.style
 ) {
     val scope = rememberCoroutineScope()

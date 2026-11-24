@@ -20,6 +20,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
@@ -75,20 +77,23 @@ class AuthSignInViewModel @AssistedInject constructor(
     }
 
     private fun setupInitialCountries() {
-        cachedGroupedCountries = getGroupedCountries()
+        viewModelScope.launch {
+            val defaultCountry = getDefaultCountry()
+            val groupedMap = getGroupedCountries().toImmutableMap()
+            val popularList = getPopularCountries().toImmutableList()
 
-        val initialPickerData = CountryPickerData(
-            popularCountries = getPopularCountries().toPersistentList(),
-            groupedCountries = cachedGroupedCountries.toPersistentMap()
-        )
-        val defaultCountry = getDefaultCountry() ?: Country()
+            cachedGroupedCountries = groupedMap
 
-        setState {
-            copy(
-                countryPicker = initialPickerData,
-                signInForm = signInForm.copy(country = defaultCountry),
-                signUpForm = signUpForm.copy(country = defaultCountry)
-            )
+            setState {
+                copy(
+                    countryPicker = CountryPickerData(
+                        popularCountries = popularList,
+                        groupedCountries = groupedMap
+                    ),
+                    signInForm = signInForm.copy(country = defaultCountry),
+                    signUpForm = signUpForm.copy(country = defaultCountry)
+                )
+            }
         }
     }
 
@@ -243,9 +248,11 @@ class AuthSignInViewModel @AssistedInject constructor(
             }
 
             is AuthSignInIntent.OnSearchCountry -> {
-                val filtered = getGroupedCountries(intent.query)
-                setState {
-                    copy(countryPicker = countryPicker.copy(groupedCountries = filtered.toPersistentMap()))
+                viewModelScope.launch {
+                    val filtered = getGroupedCountries(intent.query)
+                    setState {
+                        copy(countryPicker = countryPicker.copy(groupedCountries = filtered.toPersistentMap()))
+                    }
                 }
             }
 

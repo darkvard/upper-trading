@@ -13,7 +13,7 @@ data class Country(
     val code: String = "VN",
     val name: String = "Vietnam",
     val dialCode: String = "+84",
-    @DrawableRes val flagRes: Int = R.drawable.ic_flag_vn,
+    @param:DrawableRes val flagRes: Int = R.drawable.ic_flag_vn,
 )
 
 @Immutable

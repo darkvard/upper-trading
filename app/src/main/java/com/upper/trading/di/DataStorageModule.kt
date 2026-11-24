@@ -11,6 +11,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.datastore.preferences.core.Preferences
 import com.upper.trading.data.storage.AppDataSourceImpl
 import com.upper.trading.data.storage.UserSessionDataSourceImpl
+import com.upper.trading.di.qualifier.AppDataStore
+import com.upper.trading.di.qualifier.UserSessionDataStore
 import com.upper.trading.domain.storage.AppDataSource
 import com.upper.trading.domain.storage.UserSessionDataStorage
 import dagger.Binds

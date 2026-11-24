@@ -3,13 +3,13 @@ package com.upper.trading.data.storage
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import com.upper.trading.di.AppDataStore
+import com.upper.trading.di.qualifier.AppDataStore
 import com.upper.trading.domain.storage.AppDataSource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class AppDataSourceImpl @Inject constructor(
-    @AppDataStore private val dataStore: DataStore<Preferences>,
+    @param:AppDataStore private val dataStore: DataStore<Preferences>,
 ) : AppDataSource {
 
     override val isOnboardingCompleted: Flow<Boolean>

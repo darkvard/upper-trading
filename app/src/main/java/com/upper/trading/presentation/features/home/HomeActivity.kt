@@ -25,7 +25,6 @@ import com.upper.trading.presentation.components.snackbar.rememberAppSnackbarHos
 import com.upper.trading.presentation.navigation.AppNavDisplay
 import com.upper.trading.presentation.theme.TradingTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.getValue
 
 @AndroidEntryPoint
 class HomeActivity : ComponentActivity() {

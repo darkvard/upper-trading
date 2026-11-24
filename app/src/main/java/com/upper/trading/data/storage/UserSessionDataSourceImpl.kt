@@ -7,13 +7,13 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.upper.trading.data.storage.UserSessionDataSourceImpl.PreferencesKeys.ACCESS_TOKEN
 import com.upper.trading.data.storage.UserSessionDataSourceImpl.PreferencesKeys.REFRESH_TOKEN
-import com.upper.trading.di.UserSessionDataStore
+import com.upper.trading.di.qualifier.UserSessionDataStore
 import com.upper.trading.domain.storage.UserSessionDataStorage
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class UserSessionDataSourceImpl @Inject constructor(
-    @UserSessionDataStore private val dataStore: DataStore<Preferences>,
+    @param:UserSessionDataStore private val dataStore: DataStore<Preferences>,
 ) : UserSessionDataStorage {
 
     override val accessToken: Flow<String>

@@ -1,14 +1,18 @@
 package com.upper.trading.domain.usecase.country
 
+import com.upper.trading.di.qualifier.DefaultDispatcher
 import com.upper.trading.domain.model.Country
 import com.upper.trading.domain.repository.CountryRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.text.contains
 
 class GetGroupedCountriesUseCase @Inject constructor(
-    private val repository: CountryRepository,
+    @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    private val repository: CountryRepository
 ) {
-    operator fun invoke(query: String = ""): Map<Char, List<Country>> {
+    suspend operator fun invoke(query: String = ""): Map<Char, List<Country>> = withContext(defaultDispatcher) {
         val items = repository.getCountries()
         val filtered = if (query.isBlank()) {
             items
@@ -20,7 +24,7 @@ class GetGroupedCountriesUseCase @Inject constructor(
                         country.code.contains(trimmed, ignoreCase = true)
             }
         }
-        return filtered
+        filtered
             .sortedBy { it.name }
             .groupBy { it.name.firstOrNull()?.uppercaseChar() ?: '#' }
     }

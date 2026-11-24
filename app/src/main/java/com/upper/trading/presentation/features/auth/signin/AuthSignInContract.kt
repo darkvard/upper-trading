@@ -10,7 +10,7 @@ import com.upper.trading.presentation.base.UiEffect
 import com.upper.trading.presentation.base.UiIntent
 import com.upper.trading.presentation.base.UiState
 
-enum class AuthTab(@StringRes val titleRes: Int) {
+enum class AuthTab(@param:StringRes val titleRes: Int) {
     SIGN_IN(R.string.sign_in),
     SIGN_UP(R.string.sign_up)
 }
