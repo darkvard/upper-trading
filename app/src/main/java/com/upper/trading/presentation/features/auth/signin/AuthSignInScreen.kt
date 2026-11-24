@@ -22,6 +22,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -38,10 +40,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.upper.trading.R
+import com.upper.trading.core.auth.GoogleAuthHelper
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.UiText
+import com.upper.trading.core.utils.findActivity
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import com.upper.trading.presentation.components.bottomsheet.country.CountryBottomSheet
 import com.upper.trading.presentation.components.layout.ProgressBarActionLayout
 import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
@@ -109,6 +115,19 @@ fun AuthSignInRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = LocalAppSnackbar.current
+    val context = LocalContext.current
+    val activity = remember(context) { context.findActivity() }
+    val googleAuthHelper = remember(context) { GoogleAuthHelper(context) }
+    val scope = rememberCoroutineScope()
+
+    DisposableEffect(activity) {
+        if (activity != null) {
+            googleAuthHelper.updateContext(activity)
+        }
+        onDispose {
+            googleAuthHelper.clearContext()
+        }
+    }
 
     ObserveAsEvents(events = viewModel.effect) { effect ->
         when (effect) {
@@ -117,6 +136,26 @@ fun AuthSignInRoute(
                     snackbar.showError(title = effect.message)
                 } else {
                     snackbar.showSuccess(title = effect.message)
+                }
+            }
+
+            AuthSignInEffect.LaunchGoogleSignIn -> {
+                if (activity != null) {
+                    scope.launch {
+                        googleAuthHelper.signIn(activity)
+                            .onSuccess { idToken ->
+                                viewModel.onIntent(AuthSignInIntent.OnGoogleSignInSuccess(idToken))
+                            }
+                            .onFailure { error ->
+                                if (error !is CancellationException) {
+                                    viewModel.onIntent(
+                                        AuthSignInIntent.OnGoogleSignInFailed(
+                                            UiText.DynamicString(error.message ?: "Sign in failed")
+                                        )
+                                    )
+                                }
+                            }
+                    }
                 }
             }
 

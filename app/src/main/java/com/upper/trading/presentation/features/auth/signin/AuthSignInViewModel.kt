@@ -317,7 +317,16 @@ class AuthSignInViewModel @AssistedInject constructor(
             }
 
             AuthSignInIntent.SignInWithGoogle -> {
-                sendEffect(ShowToast(StringResource(R.string.msg_google_sign_in)))
+                sendEffect(AuthSignInEffect.LaunchGoogleSignIn)
+            }
+
+            is AuthSignInIntent.OnGoogleSignInSuccess -> {
+                handleGoogleSignIn(intent.idToken)
+            }
+
+            is AuthSignInIntent.OnGoogleSignInFailed -> {
+                setState { copy(isLoading = false, generalError = intent.error) }
+                sendEffect(ShowToast(intent.error, isError = true))
             }
 
             AuthSignInIntent.SignInWithApple -> {
@@ -395,6 +404,28 @@ class AuthSignInViewModel @AssistedInject constructor(
                             generalError = errorMsg
                         )
                     }
+                    sendEffect(ShowToast(message = errorMsg, isError = true))
+                }
+        }
+    }
+
+    private fun handleGoogleSignIn(idToken: String) {
+        viewModelScope.launch {
+            setState { copy(isLoading = true, generalError = null) }
+            signInUseCase(SignInCredentials.Google(idToken))
+                .onSuccess {
+                    setState { copy(isLoading = false) }
+                    sendEffect(ShowToast(UiText.StringResource(R.string.msg_sign_in_success), isError = false))
+                    sendEffect(AuthSignInEffect.NavigateHome)
+                }
+                .onFailure { error ->
+                    val errorMsg = UiText.DynamicString(error.message ?: "Google Sign In failed")
+                    setState {
+                        copy(
+                            isLoading = false,
+                            generalError = errorMsg
+                        )
+                    }
                     sendEffect(AuthSignInEffect.ShowToast(message = errorMsg, isError = true))
                 }
         }
@@ -462,7 +493,7 @@ class AuthSignInViewModel @AssistedInject constructor(
                             )
                         )
                     }
-                    sendEffect(AuthSignInEffect.ShowToast(UiText.StringResource(R.string.msg_sign_up_success), isError = false))
+                    sendEffect(ShowToast(UiText.StringResource(R.string.msg_sign_up_success), isError = false))
                     if (!isEmail) {
                         // Phone sign up requires OTP verification (account is pending OTP)
                         sendEffect(AuthSignInEffect.NavigateOTPScreen(destination))
@@ -476,7 +507,7 @@ class AuthSignInViewModel @AssistedInject constructor(
                             generalError = errorMsg
                         )
                     }
-                    sendEffect(AuthSignInEffect.ShowToast(message = errorMsg, isError = true))
+                    sendEffect(ShowToast(message = errorMsg, isError = true))
                 }
         }
     }

@@ -100,6 +100,8 @@ sealed interface AuthSignInIntent : UiIntent {
     // Submission actions
     data object Submit : AuthSignInIntent
     data object SignInWithGoogle : AuthSignInIntent
+    data class OnGoogleSignInSuccess(val idToken: String) : AuthSignInIntent
+    data class OnGoogleSignInFailed(val error: UiText) : AuthSignInIntent
     data object SignInWithApple : AuthSignInIntent
     data object SignInWithBiometric : AuthSignInIntent
     data object ForgotPasswordClick : AuthSignInIntent
@@ -120,4 +122,5 @@ sealed interface AuthSignInEffect : UiEffect {
     // System interactions
     data class ShowToast(val message: UiText, val isError: Boolean = false) : AuthSignInEffect
     data object LaunchBiometricPrompt : AuthSignInEffect
+    data object LaunchGoogleSignIn : AuthSignInEffect
 }
