@@ -1,6 +1,9 @@
 package com.upper.trading.data.remote.api
 
 import com.upper.trading.data.remote.dto.auth.AuthTokenResponseDto
+import com.upper.trading.data.remote.dto.auth.BiometricChallengeRequestDto
+import com.upper.trading.data.remote.dto.auth.BiometricChallengeResponseDto
+import com.upper.trading.data.remote.dto.auth.BiometricVerifyRequestDto
 import com.upper.trading.data.remote.dto.auth.ForgotPasswordRequestDto
 import com.upper.trading.data.remote.dto.auth.OAuthSignInRequestDto
 import com.upper.trading.data.remote.dto.auth.OtpSendRequestDto
@@ -25,6 +28,12 @@ interface AuthApi {
 
     @POST("auth/oauth")
     suspend fun oauthSignIn(@Body request: OAuthSignInRequestDto): AuthTokenResponseDto
+
+    @POST("auth/biometric/challenge")
+    suspend fun getBiometricChallenge(@Body request: BiometricChallengeRequestDto): BiometricChallengeResponseDto
+
+    @POST("auth/biometric/verify")
+    suspend fun verifyBiometric(@Body request: BiometricVerifyRequestDto): AuthTokenResponseDto
 
     @POST("auth/otp/send")
     suspend fun sendOtp(@Body request: OtpSendRequestDto): Response<Unit>

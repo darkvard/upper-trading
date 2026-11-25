@@ -51,4 +51,14 @@
     <string name="search_country_or_dial_code">Search country or dial code</string>
     <string name="popular_countries">Popular Countries</string>
     <string name="msg_press_back_again_to_exit">Press back again to exit</string>
+    <string name="biometric_prompt_title">Biometric Sign-In</string>
+    <string name="biometric_prompt_subtitle">Scan your fingerprint or face to sign in</string>
+    <string name="error_biometric_init_failed">Failed to initialize biometric security key</string>
+    <string name="error_biometric_no_hardware">Your device does not support biometric authentication hardware</string>
+    <string name="error_biometric_security_update">A security update is required to use biometric authentication</string>
+    <string name="msg_biometric_enroll_prompt">Please set up fingerprint or face unlock in system settings</string>
+    <string name="biometric_enroll_dialog_title">Enable Biometric Sign-In</string>
+    <string name="biometric_enroll_dialog_message">Biometric authentication (fingerprint or face unlock) is not set up on this device. Would you like to go to Settings to register it now?</string>
+    <string name="biometric_enroll_dialog_confirm">Open Settings</string>
+    <string name="cancel">Cancel</string>
 </resources>

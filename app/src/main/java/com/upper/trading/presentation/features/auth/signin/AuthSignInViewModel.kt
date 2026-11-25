@@ -2,12 +2,14 @@ package com.upper.trading.presentation.features.auth.signin
 
 import androidx.lifecycle.viewModelScope
 import com.upper.trading.R
+import com.upper.trading.core.biometric.BiometricAuthManager
+import com.upper.trading.core.biometric.BiometricStatus
 import com.upper.trading.core.utils.UiText
-import com.upper.trading.core.utils.UiText.StringResource
 import com.upper.trading.domain.model.Country
 import com.upper.trading.domain.model.CountryPickerData
 import com.upper.trading.domain.model.SignInCredentials
 import com.upper.trading.domain.model.SignUpCredentials
+import com.upper.trading.domain.repository.AuthRepository
 import com.upper.trading.domain.usecase.auth.SignInUseCase
 import com.upper.trading.domain.usecase.auth.SignUpUseCase
 import com.upper.trading.domain.usecase.country.GetDefaultCountryUseCase
@@ -44,6 +46,8 @@ class AuthSignInViewModel @AssistedInject constructor(
     private val validator: UserCredentialValidator,
     private val signInUseCase: SignInUseCase,
     private val signUpUseCase: SignUpUseCase,
+    private val authRepository: AuthRepository,
+    private val biometricAuthManager: BiometricAuthManager,
     private val getPopularCountries: GetPopularCountriesUseCase,
     private val getGroupedCountries: GetGroupedCountriesUseCase,
     private val getDefaultCountry: GetDefaultCountryUseCase
@@ -70,9 +74,16 @@ class AuthSignInViewModel @AssistedInject constructor(
     }
 
     private var cachedGroupedCountries: Map<Char, List<Country>> = emptyMap()
+    private var isAwaitingEnrollment: Boolean = false
 
     init {
         setupInitialCountries()
+        checkBiometricAvailability()
+    }
+
+    private fun checkBiometricAvailability() {
+        val canAuth = biometricAuthManager.canAuthenticate()
+        setState { copy(isBiometricAvailable = canAuth) }
     }
 
     private fun setupInitialCountries() {
@@ -343,7 +354,54 @@ class AuthSignInViewModel @AssistedInject constructor(
             }
 
             AuthSignInIntent.SignInWithBiometric -> {
-                sendEffect(AuthSignInEffect.LaunchBiometricPrompt)
+                when (biometricAuthManager.getBiometricStatus()) {
+                    BiometricStatus.READY -> {
+                        handleBiometricInitiation()
+                    }
+                    BiometricStatus.NOT_ENROLLED -> {
+                        setState { copy(showBiometricEnrollDialog = true) }
+                    }
+                    BiometricStatus.NO_HARDWARE,
+                    BiometricStatus.HARDWARE_UNAVAILABLE -> {
+                        val error = UiText.StringResource(R.string.error_biometric_no_hardware)
+                        sendEffect(ShowToast(error, isError = true))
+                    }
+                    BiometricStatus.SECURITY_UPDATE_REQUIRED -> {
+                        val error = UiText.StringResource(R.string.error_biometric_security_update)
+                        sendEffect(ShowToast(error, isError = true))
+                    }
+                }
+            }
+
+            AuthSignInIntent.DismissBiometricEnrollDialog -> {
+                setState { copy(showBiometricEnrollDialog = false) }
+            }
+
+            AuthSignInIntent.ConfirmBiometricEnrollment -> {
+                setState { copy(showBiometricEnrollDialog = false) }
+                isAwaitingEnrollment = true
+                sendEffect(AuthSignInEffect.NavigateToBiometricEnrollment)
+            }
+
+            AuthSignInIntent.CheckBiometricOnResume -> {
+                if (isAwaitingEnrollment) {
+                    if (biometricAuthManager.getBiometricStatus() == BiometricStatus.READY) {
+                        isAwaitingEnrollment = false
+                        handleBiometricInitiation()
+                    }
+                }
+            }
+
+            is AuthSignInIntent.OnBiometricSuccess -> {
+                handleBiometricLogin(
+                    signatureString = intent.signatureString,
+                    challengeNonce = intent.challengeNonce
+                )
+            }
+
+            is AuthSignInIntent.OnBiometricFailed -> {
+                setState { copy(isLoading = false, generalError = intent.errorMessage) }
+                sendEffect(ShowToast(intent.errorMessage, isError = true))
             }
         }
     }
@@ -457,7 +515,51 @@ class AuthSignInViewModel @AssistedInject constructor(
                             generalError = errorMsg
                         )
                     }
-                    sendEffect(AuthSignInEffect.ShowToast(message = errorMsg, isError = true))
+                    sendEffect(ShowToast(message = errorMsg, isError = true))
+                }
+        }
+    }
+
+    private fun handleBiometricInitiation() {
+        viewModelScope.launch {
+            setState { copy(isLoading = true, generalError = null) }
+            authRepository.getBiometricChallenge()
+                .onSuccess { nonce ->
+                    val cryptoObject = biometricAuthManager.createCryptoObject()
+                    if (cryptoObject != null) {
+                        setState { copy(isLoading = false) }
+                        sendEffect(AuthSignInEffect.LaunchBiometricPrompt(cryptoObject, nonce))
+                    } else {
+                        val error = UiText.StringResource(R.string.error_biometric_init_failed)
+                        setState { copy(isLoading = false, generalError = error) }
+                        sendEffect(ShowToast(error, isError = true))
+                    }
+                }
+                .onFailure { error ->
+                    val errorMsg = UiText.DynamicString(error.message ?: "Failed to get biometric challenge")
+                    setState { copy(isLoading = false, generalError = errorMsg) }
+                    sendEffect(ShowToast(errorMsg, isError = true))
+                }
+        }
+    }
+
+    private fun handleBiometricLogin(signatureString: String, challengeNonce: String) {
+        viewModelScope.launch {
+            setState { copy(isLoading = true, generalError = null) }
+            val credentials = SignInCredentials.Biometric(
+                challengeNonce = challengeNonce,
+                signature = signatureString
+            )
+            signInUseCase(credentials)
+                .onSuccess {
+                    setState { copy(isLoading = false) }
+                    sendEffect(ShowToast(UiText.StringResource(R.string.msg_sign_in_success), isError = false))
+                    sendEffect(AuthSignInEffect.NavigateHome)
+                }
+                .onFailure { error ->
+                    val errorMsg = UiText.DynamicString(error.message ?: "Biometric sign-in failed")
+                    setState { copy(isLoading = false, generalError = errorMsg) }
+                    sendEffect(ShowToast(errorMsg, isError = true))
                 }
         }
     }
@@ -472,7 +574,7 @@ class AuthSignInViewModel @AssistedInject constructor(
             isAgreeTerms = form.isAgreeTerms
         )
         if (validation.hasError) {
-            validation.termsError?.let { sendEffect(AuthSignInEffect.ShowToast(it, isError = true)) }
+            validation.termsError?.let { sendEffect(ShowToast(it, isError = true)) }
             setState {
                 copy(
                     signUpForm = signUpForm.copy(

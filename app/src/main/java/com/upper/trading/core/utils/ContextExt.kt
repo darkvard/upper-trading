@@ -12,6 +12,12 @@ tailrec fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
+tailrec fun Context.findFragmentActivity(): androidx.fragment.app.FragmentActivity? = when (this) {
+    is androidx.fragment.app.FragmentActivity -> this
+    is ContextWrapper -> baseContext?.findFragmentActivity()
+    else -> null
+}
+
 fun Context.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, message, duration).show()
 }

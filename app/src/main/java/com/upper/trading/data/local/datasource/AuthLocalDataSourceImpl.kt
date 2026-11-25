@@ -12,10 +12,19 @@ class AuthLocalDataSourceImpl @Inject constructor(
 
     override val accessToken: Flow<String> = userSessionDataStorage.accessToken
     override val refreshToken: Flow<String> = userSessionDataStorage.refreshToken
+    override val isBiometricEnabled: Flow<Boolean> = userSessionDataStorage.isBiometricEnabled
 
     override suspend fun saveTokens(accessToken: String, refreshToken: String) {
         userSessionDataStorage.setAccessToken(accessToken)
         userSessionDataStorage.setRefreshToken(refreshToken)
+    }
+
+    override suspend fun setBiometricEnabled(isEnabled: Boolean) {
+        userSessionDataStorage.setBiometricEnabled(isEnabled)
+    }
+
+    override fun getDeviceId(): String {
+        return userSessionDataStorage.getDeviceId()
     }
 
     override suspend fun clearSession() {

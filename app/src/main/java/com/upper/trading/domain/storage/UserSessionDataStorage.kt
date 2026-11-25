@@ -15,5 +15,11 @@ interface UserSessionDataStorage {
 
     suspend fun setBalanceHidden(isHidden: Boolean)
 
+    fun getDeviceId(): String
+
+    val isBiometricEnabled: Flow<Boolean>
+
+    suspend fun setBiometricEnabled(isEnabled: Boolean)
+
     suspend fun clearSession()
 }

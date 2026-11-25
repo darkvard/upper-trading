@@ -30,7 +30,11 @@ sealed interface SignInCredentials {
     data class Phone(val countryDialCode: String, val phone: String, val password: String) : SignInCredentials
     data class Google(val idToken: String) : SignInCredentials
     data class Apple(val idToken: String) : SignInCredentials
-    data object Biometric : SignInCredentials
+    data class Biometric(
+        val challengeNonce: String,
+        val signature: String,
+        val deviceId: String = ""
+    ) : SignInCredentials
 }
 
 sealed interface SignUpCredentials {

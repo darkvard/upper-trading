@@ -3,6 +3,9 @@ package com.upper.trading.data.remote.datasource
 import com.upper.trading.core.network.util.safeApiCall
 import com.upper.trading.data.remote.api.AuthApi
 import com.upper.trading.data.remote.dto.auth.AuthTokenResponseDto
+import com.upper.trading.data.remote.dto.auth.BiometricChallengeRequestDto
+import com.upper.trading.data.remote.dto.auth.BiometricChallengeResponseDto
+import com.upper.trading.data.remote.dto.auth.BiometricVerifyRequestDto
 import com.upper.trading.data.remote.dto.auth.ForgotPasswordRequestDto
 import com.upper.trading.data.remote.dto.auth.OAuthSignInRequestDto
 import com.upper.trading.data.remote.dto.auth.OtpSendRequestDto
@@ -33,6 +36,14 @@ class AuthRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun oauthSignIn(request: OAuthSignInRequestDto): AuthTokenResponseDto = safeApiCall(json) {
         authApi.oauthSignIn(request)
+    }
+
+    override suspend fun getBiometricChallenge(request: BiometricChallengeRequestDto): BiometricChallengeResponseDto = safeApiCall(json) {
+        authApi.getBiometricChallenge(request)
+    }
+
+    override suspend fun verifyBiometric(request: BiometricVerifyRequestDto): AuthTokenResponseDto = safeApiCall(json) {
+        authApi.verifyBiometric(request)
     }
 
     override suspend fun sendOtp(request: OtpSendRequestDto): Unit = safeApiCall(json) {

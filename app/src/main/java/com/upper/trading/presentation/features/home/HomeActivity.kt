@@ -1,10 +1,10 @@
 package com.upper.trading.presentation.features.home
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,8 +26,19 @@ import com.upper.trading.presentation.navigation.AppNavDisplay
 import com.upper.trading.presentation.theme.TradingTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * [HomeActivity] extends [FragmentActivity] instead of [androidx.activity.ComponentActivity].
+ *
+ * WHY FragmentActivity?
+ * AndroidX Biometric (`androidx.biometric:biometric`) explicitly requires a [FragmentActivity]
+ * to host and manage the lifecycle and dialog callbacks of [androidx.biometric.BiometricPrompt].
+ * Standard [androidx.activity.ComponentActivity] does not provide the FragmentManager required
+ * internally by BiometricPrompt.
+ * (Note: If using CredentialManager with Passkeys/FIDO2, ComponentActivity is sufficient,
+ * but for the native system biometric dialogs [BiometricPrompt], FragmentActivity is mandatory).
+ */
 @AndroidEntryPoint
-class HomeActivity : ComponentActivity() {
+class HomeActivity : FragmentActivity() {
 
     private val viewModel: HomeViewModel by viewModels()
 

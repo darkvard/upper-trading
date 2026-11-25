@@ -79,3 +79,21 @@ data class ResetPasswordRequestDto(
 data class RefreshTokenRequestDto(
     @SerialName("refresh_token") val refreshToken: String
 )
+
+@Serializable
+data class BiometricChallengeRequestDto(
+    @SerialName("device_id") val deviceId: String
+)
+
+@Serializable
+data class BiometricChallengeResponseDto(
+    @SerialName("challenge_nonce") val challengeNonce: String,
+    @SerialName("expires_in") val expiresIn: Int = 120
+)
+
+@Serializable
+data class BiometricVerifyRequestDto(
+    @SerialName("device_id") val deviceId: String,
+    @SerialName("challenge_nonce") val challengeNonce: String,
+    @SerialName("signature") val signature: String
+)

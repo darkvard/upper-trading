@@ -3,6 +3,8 @@ package com.upper.trading.data.repository
 import com.upper.trading.data.local.datasource.AuthLocalDataSource
 import com.upper.trading.data.remote.datasource.AuthRemoteDataSource
 import com.upper.trading.data.remote.dto.auth.AuthTokenResponseDto
+import com.upper.trading.data.remote.dto.auth.BiometricChallengeRequestDto
+import com.upper.trading.data.remote.dto.auth.BiometricVerifyRequestDto
 import com.upper.trading.data.remote.dto.auth.ForgotPasswordRequestDto
 import com.upper.trading.data.remote.dto.auth.OAuthSignInRequestDto
 import com.upper.trading.data.remote.dto.auth.OtpSendRequestDto
@@ -28,13 +30,18 @@ class AuthRepositoryImpl @Inject constructor(
 ) : AuthRepository {
 
     override suspend fun signIn(credentials: SignInCredentials): Result<AuthResult> = runCatching {
+        val resolvedDeviceId = when (credentials) {
+            is SignInCredentials.Biometric -> credentials.deviceId.ifBlank { localDataSource.getDeviceId() }
+            else -> localDataSource.getDeviceId()
+        }
+
         val response = when (credentials) {
             is SignInCredentials.Email -> remoteDataSource.signIn(
                 SignInRequestDto(
                     loginType = "EMAIL",
                     identifier = credentials.email,
                     password = credentials.password,
-                    deviceId = "android-device-mock"
+                    deviceId = resolvedDeviceId
                 )
             )
             is SignInCredentials.Phone -> remoteDataSource.signIn(
@@ -42,27 +49,56 @@ class AuthRepositoryImpl @Inject constructor(
                     loginType = "PHONE",
                     identifier = "${credentials.countryDialCode}${credentials.phone}",
                     password = credentials.password,
-                    deviceId = "android-device-mock"
+                    deviceId = resolvedDeviceId
                 )
             )
             is SignInCredentials.Google -> remoteDataSource.oauthSignIn(
                 OAuthSignInRequestDto(
                     provider = "GOOGLE",
                     idToken = credentials.idToken,
-                    deviceId = "android-device-mock"
+                    deviceId = resolvedDeviceId
                 )
             )
             is SignInCredentials.Apple -> remoteDataSource.oauthSignIn(
                 OAuthSignInRequestDto(
                     provider = "APPLE",
                     idToken = credentials.idToken,
-                    deviceId = "android-device-mock"
+                    deviceId = resolvedDeviceId
                 )
             )
-            SignInCredentials.Biometric -> error("Biometric challenge required")
+            is SignInCredentials.Biometric -> {
+                val authResponse = remoteDataSource.verifyBiometric(
+                    BiometricVerifyRequestDto(
+                        deviceId = resolvedDeviceId,
+                        challengeNonce = credentials.challengeNonce,
+                        signature = credentials.signature
+                    )
+                )
+                // Mark biometric as enabled upon successful biometric sign-in
+                localDataSource.setBiometricEnabled(true)
+                authResponse
+            }
         }
 
         saveSessionAndMap(response)
+    }
+
+    override suspend fun getBiometricChallenge(deviceId: String?): Result<String> = runCatching {
+        val targetDeviceId = deviceId?.takeIf { it.isNotBlank() } ?: localDataSource.getDeviceId()
+        val response = remoteDataSource.getBiometricChallenge(BiometricChallengeRequestDto(targetDeviceId))
+        response.challengeNonce
+    }
+
+    override suspend fun isBiometricEnabled(): Boolean {
+        return localDataSource.isBiometricEnabled.first()
+    }
+
+    override suspend fun setBiometricEnabled(isEnabled: Boolean): Result<Unit> = runCatching {
+        localDataSource.setBiometricEnabled(isEnabled)
+    }
+
+    override fun getDeviceId(): String {
+        return localDataSource.getDeviceId()
     }
 
     override suspend fun signUp(credentials: SignUpCredentials): Result<AuthResult> = runCatching {

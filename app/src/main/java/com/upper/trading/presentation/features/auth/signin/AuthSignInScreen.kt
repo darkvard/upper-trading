@@ -1,5 +1,9 @@
 package com.upper.trading.presentation.features.auth.signin
 
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import androidx.biometric.BiometricManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -16,10 +20,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -30,20 +36,25 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.upper.trading.R
+import com.upper.trading.core.biometric.BiometricAuthManager
+import com.upper.trading.core.biometric.BiometricPromptHelper
 import com.upper.trading.core.utils.ObserveAsEvents
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.UiText
-import com.upper.trading.presentation.features.auth.signin.components.rememberSocialAuthHandler
-import kotlinx.coroutines.launch
+import com.upper.trading.core.utils.findFragmentActivity
 import com.upper.trading.presentation.components.bottomsheet.country.CountryBottomSheet
 import com.upper.trading.presentation.components.layout.ProgressBarActionLayout
 import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
@@ -52,6 +63,7 @@ import com.upper.trading.presentation.features.auth.signin.components.AuthSignIn
 import com.upper.trading.presentation.features.auth.signin.components.AuthSignInForm
 import com.upper.trading.presentation.features.auth.signin.components.AuthSignUpForm
 import com.upper.trading.presentation.features.auth.signin.components.AuthSocialSection
+import com.upper.trading.presentation.features.auth.signin.components.rememberSocialAuthHandler
 import com.upper.trading.presentation.navigation.RegistrationFlowStep
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.FlowPreview
@@ -111,7 +123,13 @@ fun AuthSignInRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = LocalAppSnackbar.current
+    val context = LocalContext.current
+    val activity = remember(context) { context.findFragmentActivity() }
     val socialAuthHandler = rememberSocialAuthHandler(onIntent = viewModel::onIntent)
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onIntent(AuthSignInIntent.CheckBiometricOnResume)
+    }
 
     ObserveAsEvents(events = viewModel.effect) { effect ->
         when (effect) {
@@ -125,7 +143,31 @@ fun AuthSignInRoute(
 
             AuthSignInEffect.LaunchGoogleSignIn -> socialAuthHandler.launchGoogleSignIn()
             AuthSignInEffect.LaunchAppleSignIn -> socialAuthHandler.launchAppleSignIn()
-            AuthSignInEffect.LaunchBiometricPrompt -> {}
+            AuthSignInEffect.NavigateToBiometricEnrollment -> {
+                activity?.let { fragmentActivity ->
+                    navigateToBiometricEnrollment(fragmentActivity)
+                }
+            }
+            is AuthSignInEffect.LaunchBiometricPrompt -> {
+                activity?.let { fragmentActivity ->
+                    launchBiometricPrompt(
+                        activity = fragmentActivity,
+                        cryptoObject = effect.cryptoObject,
+                        challengeNonce = effect.challengeNonce,
+                        onSuccess = { signatureString ->
+                            viewModel.onIntent(
+                                AuthSignInIntent.OnBiometricSuccess(
+                                    signatureString = signatureString,
+                                    challengeNonce = effect.challengeNonce
+                                )
+                            )
+                        },
+                        onError = { errorMessage ->
+                            viewModel.onIntent(AuthSignInIntent.OnBiometricFailed(errorMessage))
+                        }
+                    )
+                }
+            }
             AuthSignInEffect.NavigateBack -> onNavigateBack()
             is AuthSignInEffect.NavigateOTPScreen -> onNavigateToOtp(effect.destination)
             AuthSignInEffect.NavigateHome -> onNavigateHome()
@@ -156,8 +198,15 @@ fun AuthSignInScreen(
         modifier = modifier
     )
 
+    if (state.showBiometricEnrollDialog) {
+        BiometricEnrollDialog(
+            onConfirm = { onIntent(AuthSignInIntent.ConfirmBiometricEnrollment) },
+            onDismiss = { onIntent(AuthSignInIntent.DismissBiometricEnrollDialog) }
+        )
+    }
+
     if (state.isCurrentFormOpenCountryBottomSheet) {
-        ShowSelectCountryBottomSheet(
+        SelectCountryBottomSheet(
             state = state,
             onIntent = onIntent,
             modifier = modifier
@@ -431,7 +480,7 @@ private fun AuthSignInSection(
 
 @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
-private fun ShowSelectCountryBottomSheet(
+private fun SelectCountryBottomSheet(
     state: AuthSignInState,
     onIntent: (AuthSignInIntent) -> Unit,
     modifier: Modifier = Modifier,
@@ -463,6 +512,80 @@ private fun ShowSelectCountryBottomSheet(
         },
         sheetState = bottomSheetState,
         modifier = modifier
+    )
+}
+
+private fun navigateToBiometricEnrollment(activity: FragmentActivity) {
+    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
+            putExtra(
+                Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                BiometricManager.Authenticators.BIOMETRIC_STRONG
+            )
+        }
+    } else {
+        Intent(Settings.ACTION_SECURITY_SETTINGS)
+    }
+    try {
+        activity.startActivity(intent)
+    } catch (e: Exception) {
+        activity.startActivity(Intent(Settings.ACTION_SETTINGS))
+    }
+}
+
+private fun launchBiometricPrompt(
+    activity: FragmentActivity,
+    cryptoObject: androidx.biometric.BiometricPrompt.CryptoObject,
+    challengeNonce: String,
+    onSuccess: (signatureString: String) -> Unit,
+    onError: (errorMessage: UiText) -> Unit
+) {
+    BiometricPromptHelper.showBiometricPrompt(
+        activity = activity,
+        cryptoObject = cryptoObject,
+        title = activity.getString(R.string.biometric_prompt_title),
+        subtitle = activity.getString(R.string.biometric_prompt_subtitle),
+        negativeButtonText = activity.getString(R.string.cancel),
+        onSuccess = { signature ->
+            val base64Signature = BiometricAuthManager.signChallenge(signature, challengeNonce).orEmpty()
+            onSuccess(base64Signature)
+        },
+        onError = { _, errString ->
+            onError(UiText.DynamicString(errString.toString()))
+        },
+        onFailed = {}
+    )
+}
+
+@Composable
+private fun BiometricEnrollDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.biometric_enroll_dialog_title),
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.biometric_enroll_dialog_message),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(text = stringResource(R.string.biometric_enroll_dialog_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.cancel))
+            }
+        }
     )
 }
 

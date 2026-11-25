@@ -4,6 +4,9 @@ import com.upper.trading.data.local.datasource.AuthLocalDataSource
 import com.upper.trading.data.remote.datasource.AuthRemoteDataSource
 import com.upper.trading.data.remote.dto.auth.AccountCompletionStateDto
 import com.upper.trading.data.remote.dto.auth.AuthTokenResponseDto
+import com.upper.trading.data.remote.dto.auth.BiometricChallengeRequestDto
+import com.upper.trading.data.remote.dto.auth.BiometricChallengeResponseDto
+import com.upper.trading.data.remote.dto.auth.BiometricVerifyRequestDto
 import com.upper.trading.data.remote.dto.auth.ForgotPasswordRequestDto
 import com.upper.trading.data.remote.dto.auth.OAuthSignInRequestDto
 import com.upper.trading.data.remote.dto.auth.OtpSendRequestDto
@@ -50,6 +53,33 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun `signIn with biometric credentials stores tokens in local data source on success`() = runTest {
+        val result = repository.signIn(
+            SignInCredentials.Biometric(
+                challengeNonce = "nonce",
+                signature = "sig",
+                deviceId = "device-1"
+            )
+        )
+
+        assertTrue(result.isSuccess)
+        val authResult = result.getOrNull()
+        assertEquals("test_biometric_access_token", authResult?.accessToken)
+        assertEquals("test_biometric_refresh_token", authResult?.refreshToken)
+        assertEquals("test_biometric_access_token", fakeLocalDataSource.savedAccessToken)
+        assertTrue(fakeLocalDataSource.isBiometricEnabledValue)
+    }
+
+    @Test
+    fun `getBiometricChallenge uses deviceId from local data source when not provided`() = runTest {
+        fakeLocalDataSource.deviceIdValue = "my_custom_device_id"
+        val result = repository.getBiometricChallenge()
+
+        assertTrue(result.isSuccess)
+        assertEquals("mock_nonce_123", result.getOrNull())
+    }
+
+    @Test
     fun `signOut clears session in local data source`() = runTest {
         fakeLocalDataSource.savedAccessToken = "existing_token"
         val result = repository.signOut()
@@ -79,6 +109,17 @@ class AuthRepositoryImplTest {
             return AuthTokenResponseDto("oauth_token", "oauth_refresh")
         }
 
+        override suspend fun getBiometricChallenge(request: BiometricChallengeRequestDto): BiometricChallengeResponseDto {
+            return BiometricChallengeResponseDto(challengeNonce = "mock_nonce_123", expiresIn = 60)
+        }
+
+        override suspend fun verifyBiometric(request: BiometricVerifyRequestDto): AuthTokenResponseDto {
+            return AuthTokenResponseDto(
+                accessToken = "test_biometric_access_token",
+                refreshToken = "test_biometric_refresh_token"
+            )
+        }
+
         override suspend fun sendOtp(request: OtpSendRequestDto) {}
         override suspend fun verifyOtp(request: OtpVerifyRequestDto) = OtpVerifyResponseDto(true, "action_123")
         override suspend fun forgotPassword(request: ForgotPasswordRequestDto) {}
@@ -90,11 +131,15 @@ class AuthRepositoryImplTest {
     private class FakeAuthLocalDataSource : AuthLocalDataSource {
         var savedAccessToken: String = ""
         var savedRefreshToken: String = ""
+        var isBiometricEnabledValue: Boolean = false
+        var deviceIdValue: String = "test_device_id"
         private val _accessTokenFlow = MutableStateFlow("")
         private val _refreshTokenFlow = MutableStateFlow("")
+        private val _biometricEnabledFlow = MutableStateFlow(false)
 
         override val accessToken: Flow<String> get() = _accessTokenFlow
         override val refreshToken: Flow<String> get() = _refreshTokenFlow
+        override val isBiometricEnabled: Flow<Boolean> get() = _biometricEnabledFlow
 
         override suspend fun saveTokens(accessToken: String, refreshToken: String) {
             savedAccessToken = accessToken
@@ -102,6 +147,13 @@ class AuthRepositoryImplTest {
             _accessTokenFlow.value = accessToken
             _refreshTokenFlow.value = refreshToken
         }
+
+        override suspend fun setBiometricEnabled(isEnabled: Boolean) {
+            isBiometricEnabledValue = isEnabled
+            _biometricEnabledFlow.value = isEnabled
+        }
+
+        override fun getDeviceId(): String = deviceIdValue
 
         override suspend fun clearSession() {
             savedAccessToken = ""

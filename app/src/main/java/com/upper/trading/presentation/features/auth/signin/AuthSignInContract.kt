@@ -1,6 +1,7 @@
 package com.upper.trading.presentation.features.auth.signin
 
 import androidx.annotation.StringRes
+import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.Immutable
 import com.upper.trading.R
 import com.upper.trading.core.utils.UiText
@@ -56,6 +57,7 @@ data class AuthSignInState(
     val authTab: AuthTab = AuthTab.SIGN_IN,
     val isLoading: Boolean = false,
     val isBiometricAvailable: Boolean = false,
+    val showBiometricEnrollDialog: Boolean = false,
     val generalError: UiText? = null,
     val countryPicker: CountryPickerData = CountryPickerData(),
     val signInForm: SignInFormState = SignInFormState(),
@@ -106,6 +108,11 @@ sealed interface AuthSignInIntent : UiIntent {
     data class OnAppleSignInSuccess(val idToken: String) : AuthSignInIntent
     data class OnAppleSignInFailed(val error: UiText) : AuthSignInIntent
     data object SignInWithBiometric : AuthSignInIntent
+    data class OnBiometricSuccess(val signatureString: String, val challengeNonce: String) : AuthSignInIntent
+    data class OnBiometricFailed(val errorMessage: UiText) : AuthSignInIntent
+    data object DismissBiometricEnrollDialog : AuthSignInIntent
+    data object ConfirmBiometricEnrollment : AuthSignInIntent
+    data object CheckBiometricOnResume : AuthSignInIntent
     data object ForgotPasswordClick : AuthSignInIntent
 
     // Navigation triggers
@@ -123,7 +130,11 @@ sealed interface AuthSignInEffect : UiEffect {
 
     // System interactions
     data class ShowToast(val message: UiText, val isError: Boolean = false) : AuthSignInEffect
-    data object LaunchBiometricPrompt : AuthSignInEffect
+    data class LaunchBiometricPrompt(
+        val cryptoObject: BiometricPrompt.CryptoObject,
+        val challengeNonce: String
+    ) : AuthSignInEffect
+    data object NavigateToBiometricEnrollment : AuthSignInEffect
     data object LaunchGoogleSignIn : AuthSignInEffect
     data object LaunchAppleSignIn : AuthSignInEffect
 }
