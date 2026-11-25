@@ -19,9 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.upper.trading.presentation.components.dialog.AppDialogHost
+import com.upper.trading.presentation.components.dialog.LocalAppDialog
 import com.upper.trading.presentation.components.snackbar.AppSnackbarHost
 import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
-import com.upper.trading.presentation.components.snackbar.rememberAppSnackbarHostState
+import com.upper.trading.presentation.components.state.LocalAppState
+import com.upper.trading.presentation.components.state.rememberAppState
 import com.upper.trading.presentation.navigation.AppNavDisplay
 import com.upper.trading.presentation.theme.TradingTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,10 +53,14 @@ class HomeActivity : FragmentActivity() {
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
             val isDarkMode = state.isDarkMode ?: isSystemInDarkTheme()
-            val snackbarHostState = rememberAppSnackbarHostState()
+            val appState = rememberAppState()
 
             TradingTheme(darkTheme = isDarkMode) {
-                CompositionLocalProvider(LocalAppSnackbar provides snackbarHostState) {
+                CompositionLocalProvider(
+                    LocalAppState provides appState,
+                    LocalAppSnackbar provides appState.snackbar,
+                    LocalAppDialog provides appState.dialog
+                ) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
@@ -62,11 +69,15 @@ class HomeActivity : FragmentActivity() {
                             AppNavDisplay()
 
                             AppSnackbarHost(
-                                hostState = snackbarHostState,
+                                hostState = appState.snackbar,
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
                                     .navigationBarsPadding()
                                     .padding(bottom = 20.dp, start = 16.dp, end = 16.dp)
+                            )
+
+                            AppDialogHost(
+                                state = appState.dialog
                             )
                         }
                     }

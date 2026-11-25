@@ -20,12 +20,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Fingerprint
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -56,6 +56,9 @@ import com.upper.trading.core.utils.TradingPreview
 import com.upper.trading.core.utils.UiText
 import com.upper.trading.core.utils.findFragmentActivity
 import com.upper.trading.presentation.components.bottomsheet.country.CountryBottomSheet
+import com.upper.trading.presentation.components.dialog.AppDialogData
+import com.upper.trading.presentation.components.dialog.DialogType
+import com.upper.trading.presentation.components.dialog.LocalAppDialog
 import com.upper.trading.presentation.components.layout.ProgressBarActionLayout
 import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
 import com.upper.trading.presentation.components.tab.AppSegmentedControl
@@ -65,6 +68,7 @@ import com.upper.trading.presentation.features.auth.signin.components.AuthSignUp
 import com.upper.trading.presentation.features.auth.signin.components.AuthSocialSection
 import com.upper.trading.presentation.features.auth.signin.components.rememberSocialAuthHandler
 import com.upper.trading.presentation.navigation.RegistrationFlowStep
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -191,6 +195,8 @@ fun AuthSignInScreen(
     modifier: Modifier = Modifier,
     showProgressBar: Boolean = true,
 ) {
+    val appDialog = LocalAppDialog.current
+
     AuthSignInContent(
         state = state,
         onIntent = onIntent,
@@ -198,11 +204,28 @@ fun AuthSignInScreen(
         modifier = modifier
     )
 
-    if (state.showBiometricEnrollDialog) {
-        BiometricEnrollDialog(
-            onConfirm = { onIntent(AuthSignInIntent.ConfirmBiometricEnrollment) },
-            onDismiss = { onIntent(AuthSignInIntent.DismissBiometricEnrollDialog) }
-        )
+    LaunchedEffect(state.showBiometricEnrollDialog) {
+        if (state.showBiometricEnrollDialog) {
+            appDialog.show(
+                AppDialogData(
+                    type = DialogType.GUIDE,
+                    icon = Icons.Rounded.Fingerprint,
+                    title = UiText.StringResource(R.string.biometric_enroll_dialog_title),
+                    description = UiText.StringResource(R.string.biometric_enroll_dialog_message),
+                    steps = persistentListOf(
+                        UiText.StringResource(R.string.biometric_guide_step_1),
+                        UiText.StringResource(R.string.biometric_guide_step_2),
+                        UiText.StringResource(R.string.biometric_guide_step_3)
+                    ),
+                    confirmName = UiText.StringResource(R.string.biometric_enroll_dialog_confirm),
+                    dismissName = UiText.StringResource(R.string.cancel),
+                    onConfirm = { onIntent(AuthSignInIntent.ConfirmBiometricEnrollment) },
+                    onDismiss = { onIntent(AuthSignInIntent.DismissBiometricEnrollDialog) }
+                )
+            )
+        } else {
+            appDialog.dismiss()
+        }
     }
 
     if (state.isCurrentFormOpenCountryBottomSheet) {
@@ -554,38 +577,6 @@ private fun launchBiometricPrompt(
             onError(UiText.DynamicString(errString.toString()))
         },
         onFailed = {}
-    )
-}
-
-@Composable
-private fun BiometricEnrollDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.biometric_enroll_dialog_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(R.string.biometric_enroll_dialog_message),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(text = stringResource(R.string.biometric_enroll_dialog_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.cancel))
-            }
-        }
     )
 }
 

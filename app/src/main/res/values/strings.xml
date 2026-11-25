@@ -60,5 +60,10 @@
     <string name="biometric_enroll_dialog_title">Enable Biometric Sign-In</string>
     <string name="biometric_enroll_dialog_message">Biometric authentication (fingerprint or face unlock) is not set up on this device. Would you like to go to Settings to register it now?</string>
     <string name="biometric_enroll_dialog_confirm">Open Settings</string>
+    <string name="biometric_guide_step_1">Open device Settings</string>
+    <string name="biometric_guide_step_2">Select Security or Biometrics &amp; password</string>
+    <string name="biometric_guide_step_3">Register your fingerprint or face recognition</string>
     <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="confirm">Confirm</string>
 </resources>
