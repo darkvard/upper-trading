@@ -167,6 +167,7 @@ fun CountryBottomSheet(
                 onCountryClick = { country ->
                     onSelectCountry(country)
                 },
+                searchQuery = searchQueryState.text.toString(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),

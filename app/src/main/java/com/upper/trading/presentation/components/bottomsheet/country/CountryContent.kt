@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,8 +17,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.upper.trading.R
 import com.upper.trading.core.utils.ThemePreviews
 import com.upper.trading.core.utils.TradingPreview
@@ -39,27 +43,45 @@ fun CountryContent(
     selectedCountry: Country?,
     onCountryClick: (Country) -> Unit,
     modifier: Modifier = Modifier,
+    searchQuery: String = "",
     style: CountryBottomSheetStyle = CountryBottomSheetDefaults.style
 ) {
-    LazyColumn(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(style.countryListSpacing)
-    ) {
-        if (popularCountries.isNotEmpty()) {
-            popularCountryHeader(
-                items = popularCountries,
-                itemSelected = selectedCountry,
-                onClick = onCountryClick,
+    val isEmpty = popularCountries.isEmpty() && groupedCountries.isEmpty()
+
+    if (isEmpty && searchQuery.isNotBlank()) {
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.no_results_for_query, searchQuery),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            )
+        }
+    } else {
+        LazyColumn(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(style.countryListSpacing)
+        ) {
+            if (popularCountries.isNotEmpty()) {
+                popularCountryHeader(
+                    items = popularCountries,
+                    itemSelected = selectedCountry,
+                    onClick = onCountryClick,
+                    style = style
+                )
+            }
+
+            stickyHeaderWithCountrySection(
+                groupedCountries = groupedCountries,
+                selectedCountry = selectedCountry,
+                onCountryClick = onCountryClick,
                 style = style
             )
         }
-
-        stickyHeaderWithCountrySection(
-            groupedCountries = groupedCountries,
-            selectedCountry = selectedCountry,
-            onCountryClick = onCountryClick,
-            style = style
-        )
     }
 }
 

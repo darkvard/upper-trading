@@ -66,4 +66,54 @@
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
     <string name="confirm">Confirm</string>
+    <string name="confirm_your_phone">Confirm your phone</string>
+    <string name="confirm_your_email">Confirm your email</string>
+    <string name="confirm_otp_description">We send %1$d digits code to %2$s</string>
+    <string name="didnt_get_a_code">Didn’t get a code?</string>
+    <string name="send">Send</string>
+    <string name="send_otp">Send OTP</string>
+    <string name="verify_otp">Verify OTP</string>
+    <string name="resend">Resend</string>
+    <string name="verify_your_number">Verify Your Number</string>
+    <string name="verify_your_email">Verify Your Email</string>
+    <string name="otp_sent_success">Verification code sent successfully</string>
+    <string name="otp_verified_success">OTP verified successfully</string>
+    <string name="otp_resent_success">Verification code resent successfully</string>
+    <string name="error_invalid_otp">The OTP code entered is incorrect or has expired.</string>
+    <string name="error_resend_otp_failed">Failed to resend verification code. Please try again.</string>
+    <string name="resend_with_countdown">Resend (%1$ds)</string>
+    <string name="account_created_success_title">Your account has been successfully created!</string>
+    <string name="get_started">Get Started</string>
+
+    <string name="notif_otp_title">Login verification code</string>
+    <string name="notif_otp_app_name">Upper Trading</string>
+    <string name="notif_otp_verify_account">Verify your account</string>
+    <string name="notif_otp_verify_account_login">Xác thực đăng nhập tài khoản</string>
+    <string name="notif_otp_label_verification_code">Mã xác thực</string>
+    <string name="notif_otp_desc_email">Mã xác thực email: %s</string>
+    <string name="notif_otp_desc_phone">Mã xác thực số điện thoại: %s</string>
+    <string name="notif_otp_desc_generic">Mã xác thực: %s</string>
+    <string name="notif_otp_security_warning">Không chia sẻ mã này với bất kỳ ai</string>
+    <string name="notif_otp_dot_separator">•</string>
+    <string name="notif_otp_time_now">Now</string>
+    <string name="notif_otp_label">OTP</string>
+    <string name="notif_otp_expires_label">Hết hạn sau</string>
+    <string name="notif_otp_expires_prefix">Expires in %s</string>
+    <string name="notif_otp_copy_action">Sao chép</string>
+    <string name="notif_otp_copied_toast">Verification code copied to clipboard</string>
+    <string name="notif_otp_channel_name">Verification Code</string>
+    <string name="notif_otp_channel_description">Security OTP notifications for Upper Trading</string>
+    <string name="clip_label_otp">Upper_OTP</string>
+
+    <string name="notif_permission_dialog_title">Enable OTP Notifications</string>
+    <string name="notif_permission_dialog_desc">Allow notifications to receive your verification code directly on this device.</string>
+    <string name="notif_permission_dialog_confirm">Enable Notifications</string>
+    <string name="error_notification_permission_required">Notification permission is required for this feature</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="notif_permission_settings_desc">Notification permission is disabled. Please enable it in Settings to receive your verification code.</string>
+    <string name="notif_channel_disabled_title">Verification Code Channel Disabled</string>
+    <string name="notif_channel_disabled_desc">Notifications for verification codes are turned off in system settings. Please enable them to receive your OTP code.</string>
+
+    <string name="no_results_for_query">No results for \"%1$s\"</string>
+
 </resources>
