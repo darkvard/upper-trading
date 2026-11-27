@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:paddingTop="1dp"
+    android:paddingBottom="1dp">
+
+    <ImageButton
+        android:id="@+id/btn_collapsed_copy"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="6dp"
+        android:background="@drawable/bg_notif_circle_btn"
+        android:src="@drawable/ic_notif_copy"
+        android:tint="@color/notif_text_primary"
+        android:padding="5dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="@string/notif_otp_copy_action" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@id/btn_collapsed_copy"
+        android:layout_marginEnd="8dp"
+        android:layout_centerVertical="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_collapsed_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto_bold"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/notif_text_primary"
+            android:text="@string/app_name"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/tv_collapsed_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="@font/roboto_regular"
+            android:textSize="13sp"
+            android:textColor="@color/notif_text_secondary"
+            android:singleLine="true" />
+    </LinearLayout>
+</RelativeLayout>

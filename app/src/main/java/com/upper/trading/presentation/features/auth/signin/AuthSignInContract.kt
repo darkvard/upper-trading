@@ -10,6 +10,7 @@ import com.upper.trading.domain.model.CountryPickerData
 import com.upper.trading.presentation.base.UiEffect
 import com.upper.trading.presentation.base.UiIntent
 import com.upper.trading.presentation.base.UiState
+import com.upper.trading.presentation.navigation.AuthNavKey
 
 enum class AuthTab(@param:StringRes val titleRes: Int) {
     SIGN_IN(R.string.sign_in),
@@ -31,7 +32,15 @@ data class SignInFormState(
     val emailError: UiText? = null,
     val phoneError: UiText? = null,
     val passwordError: UiText? = null,
-)
+) {
+    fun toOtpNavKey(fromOnboarding: Boolean = true): AuthNavKey.Otp = AuthNavKey.Otp(
+        inputMode = inputMode,
+        email = email,
+        phoneNumber = phoneNumber,
+        dialCode = country.dialCode.filter { it.isDigit() }.toIntOrNull() ?: 0,
+        fromOnboarding = fromOnboarding
+    )
+}
 
 @Immutable
 data class SignUpFormState(
@@ -50,7 +59,15 @@ data class SignUpFormState(
     val phoneError: UiText? = null,
     val passwordError: UiText? = null,
     val confirmPasswordError: UiText? = null,
-)
+) {
+    fun toOtpNavKey(fromOnboarding: Boolean = true): AuthNavKey.Otp = AuthNavKey.Otp(
+        inputMode = inputMode,
+        email = email,
+        phoneNumber = phoneNumber,
+        dialCode = country.dialCode.filter { it.isDigit() }.toIntOrNull() ?: 0,
+        fromOnboarding = fromOnboarding
+    )
+}
 
 @Immutable
 data class AuthSignInState(
@@ -61,8 +78,18 @@ data class AuthSignInState(
     val generalError: UiText? = null,
     val countryPicker: CountryPickerData = CountryPickerData(),
     val signInForm: SignInFormState = SignInFormState(),
-    val signUpForm: SignUpFormState = SignUpFormState()
+    val signUpForm: SignUpFormState = SignUpFormState(),
+    val isShowProgressBar: Boolean = false
 ) : UiState {
+
+    companion object {
+        fun from(isSignUp: Boolean, isFromOnboarding: Boolean): AuthSignInState {
+            return AuthSignInState().copy(
+                authTab = if (isSignUp) AuthTab.SIGN_UP else AuthTab.SIGN_IN,
+                isShowProgressBar = isFromOnboarding
+            )
+        }
+    }
 
     val isCurrentFormOpenCountryBottomSheet: Boolean
         get() = if (authTab == AuthTab.SIGN_IN) {
@@ -122,7 +149,7 @@ sealed interface AuthSignInIntent : UiIntent {
 
 
 sealed interface AuthSignInEffect : UiEffect {
-    data class NavigateOTPScreen(val destination: String) : AuthSignInEffect
+    data class NavigateOTPScreen(val otpKey: AuthNavKey.Otp) : AuthSignInEffect
     data object NavigateCreatedSuccessScreen : AuthSignInEffect
     data object NavigateHome : AuthSignInEffect
     data object NavigateForgotPassword : AuthSignInEffect

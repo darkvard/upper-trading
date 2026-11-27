@@ -11,7 +11,7 @@ class SendOtpUseCase @Inject constructor(
     suspend operator fun invoke(
         channel: OtpChannel,
         destination: String,
-        purpose: OtpPurpose
+        purpose: OtpPurpose = OtpPurpose.SIGN_UP
     ): Result<Unit> {
         return authRepository.sendOtp(channel, destination, purpose)
     }

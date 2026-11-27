@@ -19,7 +19,16 @@ object MockAuthConstants {
 
     // Valid Test Data
     const val SAMPLE_VALID_OTP = "452189"
+    const val DEV_BYPASS_OTP = "123456"
     const val SAMPLE_BIOMETRIC_NONCE = "9f86d081884c7d659a2feaa0c55ad015"
+
+    // Dynamic Mock OTP for Notification & Verification Matching
+    var currentActiveOtp: String = "849201"
+
+    fun generateNewOtp(): String {
+        currentActiveOtp = (100000..999999).random().toString()
+        return currentActiveOtp
+    }
 
     // Error Codes & Messages defined in OpenAPI 3.0 Contract
     const val CODE_INVALID_CREDENTIALS = "INVALID_CREDENTIALS"

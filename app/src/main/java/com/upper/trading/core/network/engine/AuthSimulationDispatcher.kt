@@ -54,14 +54,19 @@ class AuthSimulationDispatcher @Inject constructor() {
             }
 
             path.endsWith("/auth/otp/send") && method == "POST" -> {
+                MockAuthConstants.generateNewOtp()
                 SimulationResult(200, """{"message":"OTP dispatched successfully"}""")
             }
 
             path.endsWith("/auth/otp/verify") && method == "POST" -> {
-                if (bodyString.contains(MockAuthConstants.TRIGGER_ERROR_OTP)) {
-                    SimulationResult(400, MockAuthData.ERROR_OTP_JSON)
-                } else {
+                val isMatchingOtp = bodyString.contains(MockAuthConstants.currentActiveOtp) ||
+                        bodyString.contains(MockAuthConstants.DEV_BYPASS_OTP) ||
+                        bodyString.contains(MockAuthConstants.SAMPLE_VALID_OTP)
+                val isTriggerError = bodyString.contains(MockAuthConstants.TRIGGER_ERROR_OTP)
+                if (isMatchingOtp && !isTriggerError) {
                     SimulationResult(200, MockAuthData.OTP_VERIFY_SUCCESS_JSON)
+                } else {
+                    SimulationResult(400, MockAuthData.ERROR_OTP_JSON)
                 }
             }
 

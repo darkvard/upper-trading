@@ -1,6 +1,8 @@
 package com.upper.trading.presentation.features.home
 
+import android.content.Intent
 import android.os.Bundle
+import com.upper.trading.core.notification.OtpNotificationReceiver
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -8,6 +10,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +76,7 @@ class HomeActivity : FragmentActivity() {
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
                                     .navigationBarsPadding()
+                                    .imePadding()
                                     .padding(bottom = 20.dp, start = 16.dp, end = 16.dp)
                             )
 
@@ -83,6 +87,28 @@ class HomeActivity : FragmentActivity() {
                     }
                 }
             }
+        }
+        // [Cold Start]: Không broadcast hay xóa extra ở đây để LaunchedEffect(Unit)
+        // trong AuthOtpScreen đọc và tiêu thụ khi Composable khởi tạo.
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // [Real-time / Hot Start]: App đang mở sẵn, broadcast ngay cho DisposableEffect đang lắng nghe
+        handleOtpNotificationIntent(intent)
+    }
+
+    private fun handleOtpNotificationIntent(intent: Intent?) {
+        val otpCode = intent?.getStringExtra(OtpNotificationReceiver.EXTRA_OTP_CODE)
+        if (!otpCode.isNullOrBlank()) {
+            sendBroadcast(
+                Intent(OtpNotificationReceiver.ACTION_OTP_COPIED).apply {
+                    putExtra(OtpNotificationReceiver.EXTRA_OTP_CODE, otpCode)
+                    setPackage(packageName)
+                }
+            )
+            intent.removeExtra(OtpNotificationReceiver.EXTRA_OTP_CODE)
         }
     }
 }

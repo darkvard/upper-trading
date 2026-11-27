@@ -67,6 +67,7 @@ import com.upper.trading.presentation.features.auth.signin.components.AuthSignIn
 import com.upper.trading.presentation.features.auth.signin.components.AuthSignUpForm
 import com.upper.trading.presentation.features.auth.signin.components.AuthSocialSection
 import com.upper.trading.presentation.features.auth.signin.components.rememberSocialAuthHandler
+import com.upper.trading.presentation.navigation.AuthNavKey
 import com.upper.trading.presentation.navigation.RegistrationFlowStep
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -109,7 +110,7 @@ private class SignUpInputStates(
 @Composable
 fun AuthSignInRoute(
     onNavigateBack: () -> Unit,
-    onNavigateToOtp: (destination: String) -> Unit,
+    onNavigateToOtp: (otpKey: AuthNavKey.Otp) -> Unit,
     onNavigateHome: () -> Unit,
     onNavigateForgotPassword: () -> Unit,
     onNavigateCreatedSuccess: () -> Unit,
@@ -173,7 +174,7 @@ fun AuthSignInRoute(
                 }
             }
             AuthSignInEffect.NavigateBack -> onNavigateBack()
-            is AuthSignInEffect.NavigateOTPScreen -> onNavigateToOtp(effect.destination)
+            is AuthSignInEffect.NavigateOTPScreen -> onNavigateToOtp(effect.otpKey)
             AuthSignInEffect.NavigateHome -> onNavigateHome()
             AuthSignInEffect.NavigateForgotPassword -> onNavigateForgotPassword()
             AuthSignInEffect.NavigateCreatedSuccessScreen -> onNavigateCreatedSuccess()
@@ -183,7 +184,6 @@ fun AuthSignInRoute(
     AuthSignInScreen(
         state = state,
         onIntent = viewModel::onIntent,
-        showProgressBar = showProgressBar,
         modifier = modifier
     )
 }
@@ -193,14 +193,12 @@ fun AuthSignInScreen(
     state: AuthSignInState,
     onIntent: (AuthSignInIntent) -> Unit,
     modifier: Modifier = Modifier,
-    showProgressBar: Boolean = true,
 ) {
     val appDialog = LocalAppDialog.current
 
     AuthSignInContent(
         state = state,
         onIntent = onIntent,
-        showProgressBar = showProgressBar,
         modifier = modifier
     )
 
@@ -242,7 +240,6 @@ private fun AuthSignInContent(
     state: AuthSignInState,
     onIntent: (AuthSignInIntent) -> Unit,
     modifier: Modifier = Modifier,
-    showProgressBar: Boolean = true,
     scrollState: ScrollState = rememberScrollState(),
     style: AuthSignInStyle = AuthSignInDefaults.style
 ) {
@@ -250,8 +247,8 @@ private fun AuthSignInContent(
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
 
-    val progressBarState = remember(showProgressBar) {
-        if (showProgressBar) {
+    val progressBarState = remember(state.isShowProgressBar) {
+        if (state.isShowProgressBar) {
             RegistrationFlowStep.SIGN_UP.toProgressBarState()
         } else {
             null
@@ -281,7 +278,7 @@ private fun AuthSignInContent(
     ProgressBarActionLayout(
         progressBarState = progressBarState,
         onBackClick = { onIntent(AuthSignInIntent.BackClick) },
-        onCloseClick = if (showProgressBar) {
+        onCloseClick = if (state.isShowProgressBar) {
             { onIntent(AuthSignInIntent.CloseClick) }
         } else null,
         modifier = modifier
@@ -585,9 +582,8 @@ private fun launchBiometricPrompt(
 fun PreviewAuthSignInScreen() {
     TradingPreview {
         AuthSignInScreen(
-            state = AuthSignInState(),
+            state = AuthSignInState().copy(isShowProgressBar = false),
             onIntent = {},
-            showProgressBar = false
         )
     }
 }
@@ -599,10 +595,10 @@ fun PreviewAuthSignUpScreen() {
         AuthSignInScreen(
             state = AuthSignInState(
                 authTab = AuthTab.SIGN_UP,
-                signUpForm = SignUpFormState(inputMode = AuthInputMode.PHONE)
+                signUpForm = SignUpFormState(inputMode = AuthInputMode.PHONE),
+                isShowProgressBar = true
             ),
             onIntent = {},
-            showProgressBar = true
         )
     }
 }

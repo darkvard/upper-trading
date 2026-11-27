@@ -1,6 +1,7 @@
 package com.upper.trading.presentation.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.upper.trading.presentation.features.auth.signin.AuthInputMode
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -22,10 +23,16 @@ sealed interface AuthNavKey: AppNavKey {
         val isSignUp: Boolean = false,
         val showProgressBar: Boolean = true
     ): AuthNavKey
-    @Serializable data class Otp(
-        val destination: String,
+
+    @Serializable
+    data class Otp(
+        val inputMode: AuthInputMode = AuthInputMode.EMAIL,
+        val email: String = "",
+        val phoneNumber: String = "",
+        val dialCode: Int = 0,
         val fromOnboarding: Boolean = true
     ): AuthNavKey
+
     @Serializable data object PinSetup: AuthNavKey
     @Serializable data object Welcome: AuthNavKey
 }

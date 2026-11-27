@@ -1,6 +1,5 @@
 package com.upper.trading.presentation.navigation
 
-import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.ContentTransform
@@ -29,8 +28,9 @@ import com.upper.trading.core.utils.findActivity
 import com.upper.trading.presentation.components.layout.FlowProgressState
 import com.upper.trading.presentation.components.layout.LocalFlowProgress
 import com.upper.trading.presentation.components.snackbar.LocalAppSnackbar
-import com.upper.trading.presentation.features.auth.otp.AuthOtpScreen
+import com.upper.trading.presentation.features.auth.otp.AuthOtpRoute
 import com.upper.trading.presentation.features.auth.signin.AuthSignInRoute
+import com.upper.trading.presentation.features.auth.welcome.AuthWelcomeRoute
 import com.upper.trading.presentation.features.card.AddCardScreen
 import com.upper.trading.presentation.features.card.CardVerifyScreen
 import com.upper.trading.presentation.features.kyc.account.AccountAddressScreen
@@ -63,7 +63,7 @@ inline fun <reified K : AppNavKey> EntryProviderScope<AppNavKey>.stepEntry(
 
 @Composable
 fun AppNavDisplay(
-    navigator: Navigator<AppNavKey> = rememberAppNavigator(startDestination = AuthNavKey.SignIn())  // todo default = SplashNavKey
+    navigator: Navigator<AppNavKey> = rememberAppNavigator(startDestination = SplashNavKey)
 ) {
     val flowProgress = remember { FlowProgressState() }
     val context = LocalContext.current
@@ -148,7 +148,9 @@ fun EntryProviderScope<AppNavKey>.splashGraph(navigator: Navigator<AppNavKey>) {
     entry<SplashNavKey>(metadata = SplashMetadata) {
         SplashRoute(
             onNavigateOnboardingTheme = {
-                navigator.replace(OnboardingNavKey.Theme)
+                // todo test ui
+                navigator.replace(AuthNavKey.Otp(email = "user@gmail.com"))
+//                navigator.replace(OnboardingNavKey.Theme)
             },
             onNavigateMainTrade = {
                 navigator.replace(MainNavKey.Trade)
@@ -202,13 +204,8 @@ fun EntryProviderScope<AppNavKey>.authGraph(navigator: Navigator<AppNavKey>) {
             isSignUp = entry.isSignUp,
             showProgressBar = entry.showProgressBar,
             onNavigateBack = { backDispatcher?.onBackPressed() ?: navigator.pop() },
-            onNavigateToOtp = { destination ->
-                navigator.push(
-                    AuthNavKey.Otp(
-                        destination = destination,
-                        fromOnboarding = entry.showProgressBar
-                    )
-                )
+            onNavigateToOtp = { otpKey ->
+                navigator.push(otpKey)
             },
             onNavigateHome = {
                 navigator.replaceAll(MainNavKey.Trade)
@@ -221,21 +218,25 @@ fun EntryProviderScope<AppNavKey>.authGraph(navigator: Navigator<AppNavKey>) {
     entry<AuthNavKey.Otp>(
         metadata = { key -> mapOf(NAV_METADATA_PROGRESS_STEP to key.fromOnboarding) }
     ) { entry ->
-        AuthOtpScreen(
-            destination = entry.destination,
-            progressBarState = if (entry.fromOnboarding) {
-                RegistrationFlowStep.OTP.toProgressBarState()
-            } else {
-                null
-            },
+        AuthOtpRoute(
+            navKeyOtp = entry,
             onBackClick = { navigator.pop() },
             onCloseClick = { navigator.replaceAll(MainNavKey.Trade) },
             onNextClick = {
                 if (entry.fromOnboarding) {
-                    navigator.push(ProfileNavKey.AccountSetup(isStandalone = false))
+                    navigator.replace(AuthNavKey.Welcome)
                 } else {
                     navigator.replaceAll(MainNavKey.Trade)
                 }
+            }
+        )
+    }
+
+    entry<AuthNavKey.Welcome> {
+        AuthWelcomeRoute(
+            onSkipClick = { navigator.replaceAll(MainNavKey.Trade) },
+            onGetStartedClick = {
+                navigator.push(ProfileNavKey.AccountSetup(isStandalone = false))
             }
         )
     }
@@ -246,7 +247,7 @@ fun EntryProviderScope<AppNavKey>.profileGraph(navigator: Navigator<AppNavKey>) 
         val progress = if (entry.isStandalone) {
             StandaloneAccountSetupFlowStep.PERSONAL_INFO.toProgressBarState()
         } else {
-            RegistrationFlowStep.ACCOUNT_PERSONAL.toProgressBarState()
+            OnboardingSetupFlowStep.ACCOUNT_PERSONAL.toProgressBarState()
         }
         AccountPersonalScreen(
             progressBarState = progress,
@@ -259,7 +260,7 @@ fun EntryProviderScope<AppNavKey>.profileGraph(navigator: Navigator<AppNavKey>) 
         val progress = if (entry.isStandalone) {
             StandaloneAccountSetupFlowStep.HOME_ADDRESS.toProgressBarState()
         } else {
-            RegistrationFlowStep.ACCOUNT_ADDRESS.toProgressBarState()
+            OnboardingSetupFlowStep.ACCOUNT_ADDRESS.toProgressBarState()
         }
         AccountAddressScreen(
             progressBarState = progress,
@@ -272,7 +273,7 @@ fun EntryProviderScope<AppNavKey>.profileGraph(navigator: Navigator<AppNavKey>) 
         val progress = if (entry.isStandalone) {
             StandaloneAccountSetupFlowStep.COUNTRY.toProgressBarState()
         } else {
-            RegistrationFlowStep.ACCOUNT_COUNTRY.toProgressBarState()
+            OnboardingSetupFlowStep.ACCOUNT_COUNTRY.toProgressBarState()
         }
         AccountCountryScreen(
             progressBarState = progress,
@@ -294,7 +295,7 @@ fun EntryProviderScope<AppNavKey>.kycGraph(navigator: Navigator<AppNavKey>) {
         val progress = if (entry.isStandalone) {
             StandaloneKycFlowStep.SELFIE.toProgressBarState()
         } else {
-            RegistrationFlowStep.KYC_SELFIE.toProgressBarState()
+            OnboardingSetupFlowStep.KYC_SELFIE.toProgressBarState()
         }
         SelfieScreen(
             progressBarState = progress,
@@ -307,7 +308,7 @@ fun EntryProviderScope<AppNavKey>.kycGraph(navigator: Navigator<AppNavKey>) {
         val progress = if (entry.isStandalone) {
             StandaloneKycFlowStep.DOCUMENT.toProgressBarState()
         } else {
-            RegistrationFlowStep.KYC_DOCUMENT.toProgressBarState()
+            OnboardingSetupFlowStep.KYC_DOCUMENT.toProgressBarState()
         }
         DocumentScanScreen(
             progressBarState = progress,
@@ -320,7 +321,7 @@ fun EntryProviderScope<AppNavKey>.kycGraph(navigator: Navigator<AppNavKey>) {
         val progress = if (entry.isStandalone) {
             StandaloneKycFlowStep.PROCESSING.toProgressBarState()
         } else {
-            RegistrationFlowStep.KYC_PROCESSING.toProgressBarState()
+            OnboardingSetupFlowStep.KYC_PROCESSING.toProgressBarState()
         }
         KycProcessingScreen(
             progressBarState = progress,
@@ -342,7 +343,7 @@ fun EntryProviderScope<AppNavKey>.cardGraph(navigator: Navigator<AppNavKey>) {
         val progress = if (entry.isStandalone) {
             StandaloneCardFlowStep.CARD_INFO.toProgressBarState()
         } else {
-            RegistrationFlowStep.CARD_INFO.toProgressBarState()
+            OnboardingSetupFlowStep.CARD_INFO.toProgressBarState()
         }
         AddCardScreen(
             progressBarState = progress,
@@ -355,7 +356,7 @@ fun EntryProviderScope<AppNavKey>.cardGraph(navigator: Navigator<AppNavKey>) {
         val progress = if (entry.isStandalone) {
             StandaloneCardFlowStep.CARD_VERIFY.toProgressBarState()
         } else {
-            RegistrationFlowStep.CARD_VERIFY.toProgressBarState()
+            OnboardingSetupFlowStep.CARD_VERIFY.toProgressBarState()
         }
         CardVerifyScreen(
             progressBarState = progress,

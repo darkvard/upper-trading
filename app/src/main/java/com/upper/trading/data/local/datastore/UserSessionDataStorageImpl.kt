@@ -9,35 +9,40 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.upper.trading.data.local.datastore.UserSessionDataStorageImpl.PreferencesKeys.ACCESS_TOKEN
 import com.upper.trading.data.local.datastore.UserSessionDataStorageImpl.PreferencesKeys.REFRESH_TOKEN
+import com.upper.trading.di.qualifier.IoDispatcher
 import com.upper.trading.di.qualifier.UserSessionDataStore
 import com.upper.trading.domain.storage.UserSessionDataStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class UserSessionDataStorageImpl @Inject constructor(
     @param:UserSessionDataStore private val dataStore: DataStore<Preferences>,
     @param:ApplicationContext private val context: Context,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UserSessionDataStorage {
 
     override val accessToken: Flow<String>
-        get() = dataStore.getPreference(ACCESS_TOKEN, "")
+        get() = dataStore.getPreference(ACCESS_TOKEN, "").flowOn(ioDispatcher)
 
-    override suspend fun setAccessToken(token: String) {
+    override suspend fun setAccessToken(token: String) = withContext(ioDispatcher) {
         dataStore.setPreference(ACCESS_TOKEN, token)
     }
 
     override val refreshToken: Flow<String>
-        get() = dataStore.getPreference(REFRESH_TOKEN, "")
+        get() = dataStore.getPreference(REFRESH_TOKEN, "").flowOn(ioDispatcher)
 
-    override suspend fun setRefreshToken(token: String) {
+    override suspend fun setRefreshToken(token: String) = withContext(ioDispatcher) {
         dataStore.setPreference(REFRESH_TOKEN, token)
     }
 
     override val isBalanceHidden: Flow<Boolean>
-        get() = dataStore.getPreference(PreferencesKeys.BALANCE_HIDDEN, false)
+        get() = dataStore.getPreference(PreferencesKeys.BALANCE_HIDDEN, false).flowOn(ioDispatcher)
 
-    override suspend fun setBalanceHidden(isHidden: Boolean) {
+    override suspend fun setBalanceHidden(isHidden: Boolean) = withContext(ioDispatcher) {
         dataStore.setPreference(PreferencesKeys.BALANCE_HIDDEN, isHidden)
     }
 
@@ -46,16 +51,18 @@ class UserSessionDataStorageImpl @Inject constructor(
     }
 
     override val isBiometricEnabled: Flow<Boolean>
-        get() = dataStore.getPreference(PreferencesKeys.BIOMETRIC_ENABLED, false)
+        get() = dataStore.getPreference(PreferencesKeys.BIOMETRIC_ENABLED, false).flowOn(ioDispatcher)
 
-    override suspend fun setBiometricEnabled(isEnabled: Boolean) {
+    override suspend fun setBiometricEnabled(isEnabled: Boolean) = withContext(ioDispatcher) {
         dataStore.setPreference(PreferencesKeys.BIOMETRIC_ENABLED, isEnabled)
     }
 
     override suspend fun clearSession() {
-        dataStore.edit { preferences ->
-            preferences.remove(ACCESS_TOKEN)
-            preferences.remove(REFRESH_TOKEN)
+        withContext(ioDispatcher) {
+            dataStore.edit { preferences ->
+                preferences.remove(ACCESS_TOKEN)
+                preferences.remove(REFRESH_TOKEN)
+            }
         }
     }
 

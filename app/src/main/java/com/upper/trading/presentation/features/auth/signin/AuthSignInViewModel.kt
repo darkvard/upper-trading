@@ -28,21 +28,13 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-/**
- * AuthSignInViewModel manages authentication state and actions for Sign In and Sign Up.
- *
- * NOTE ON ASSISTED INJECTION:
- * When injecting multiple assisted parameters with the same type signature (e.g. multiple Booleans like
- * `isSignUp: Boolean` and `showProgressBar: Boolean`, or multiple Strings), Dagger Hilt requires explicit
- * identifier keys: `@Assisted("isSignUp")` and `@Assisted("showProgressBar")` in both the constructor
- * and the [Factory] interface.
- * Failure to provide unique keys for identical types causes a `[Dagger/DuplicateAssistedTypes]` compile-time error
- * and prevents Navigation / Hilt from mapping arguments incorrectly.
- */
+private const val IS_SIGN_UP_QUALIFIER = "IS_SIGN_UP_QUALIFIER"
+private const val IS_FROM_ONBOARDING_QUALIFIER = "IS_FROM_ONBOARDING_QUALIFIER"
+
 @HiltViewModel(assistedFactory = AuthSignInViewModel.Factory::class)
 class AuthSignInViewModel @AssistedInject constructor(
-    @Assisted("isSignUp") private val isSignUp: Boolean,
-    @Assisted("fromOnboarding") private val fromOnboarding: Boolean,
+    @Assisted(IS_SIGN_UP_QUALIFIER) private val isSignUp: Boolean,
+    @Assisted(IS_FROM_ONBOARDING_QUALIFIER) private val fromOnboarding: Boolean,
     private val validator: UserCredentialValidator,
     private val signInUseCase: SignInUseCase,
     private val signUpUseCase: SignUpUseCase,
@@ -52,15 +44,13 @@ class AuthSignInViewModel @AssistedInject constructor(
     private val getGroupedCountries: GetGroupedCountriesUseCase,
     private val getDefaultCountry: GetDefaultCountryUseCase
 ) : BaseViewModel<AuthSignInState, AuthSignInIntent, AuthSignInEffect>(
-    AuthSignInState(
-        authTab = if (isSignUp) AuthTab.SIGN_UP else AuthTab.SIGN_IN
-    )
+    initialState = AuthSignInState.from(isSignUp, fromOnboarding)
 ) {
     @AssistedFactory
     interface Factory {
         fun create(
-            @Assisted("isSignUp") isSignUp: Boolean,
-            @Assisted("fromOnboarding") fromOnboarding: Boolean
+            @Assisted(IS_SIGN_UP_QUALIFIER) isSignUp: Boolean,
+            @Assisted(IS_FROM_ONBOARDING_QUALIFIER) fromOnboarding: Boolean
         ): AuthSignInViewModel
     }
 
@@ -358,14 +348,17 @@ class AuthSignInViewModel @AssistedInject constructor(
                     BiometricStatus.READY -> {
                         handleBiometricInitiation()
                     }
+
                     BiometricStatus.NOT_ENROLLED -> {
                         setState { copy(showBiometricEnrollDialog = true) }
                     }
+
                     BiometricStatus.NO_HARDWARE,
                     BiometricStatus.HARDWARE_UNAVAILABLE -> {
                         val error = UiText.StringResource(R.string.error_biometric_no_hardware)
                         sendEffect(ShowToast(error, isError = true))
                     }
+
                     BiometricStatus.SECURITY_UPDATE_REQUIRED -> {
                         val error = UiText.StringResource(R.string.error_biometric_security_update)
                         sendEffect(ShowToast(error, isError = true))
@@ -451,14 +444,20 @@ class AuthSignInViewModel @AssistedInject constructor(
             signInUseCase(form.toCredentials())
                 .onSuccess {
                     setState { copy(isLoading = false) }
-                    sendEffect(AuthSignInEffect.ShowToast(UiText.StringResource(R.string.msg_sign_in_success), isError = false))
+                    sendEffect(
+                        AuthSignInEffect.ShowToast(
+                            UiText.StringResource(R.string.msg_sign_in_success),
+                            isError = false
+                        )
+                    )
                     if (fromOnboarding) {
-                        val destination = if (form.inputMode == AuthInputMode.EMAIL) {
-                            form.email
-                        } else {
-                            "${form.country.code} ${form.phoneNumber}"
-                        }
-                        sendEffect(AuthSignInEffect.NavigateOTPScreen(destination))
+                        sendEffect(
+                            AuthSignInEffect.NavigateOTPScreen(
+                                form.toOtpNavKey(
+                                    fromOnboarding = true
+                                )
+                            )
+                        )
                     } else {
                         sendEffect(AuthSignInEffect.NavigateHome)
                     }
@@ -482,7 +481,12 @@ class AuthSignInViewModel @AssistedInject constructor(
             signInUseCase(SignInCredentials.Google(idToken))
                 .onSuccess {
                     setState { copy(isLoading = false) }
-                    sendEffect(ShowToast(UiText.StringResource(R.string.msg_sign_in_success), isError = false))
+                    sendEffect(
+                        ShowToast(
+                            UiText.StringResource(R.string.msg_sign_in_success),
+                            isError = false
+                        )
+                    )
                     sendEffect(AuthSignInEffect.NavigateHome)
                 }
                 .onFailure { error ->
@@ -504,7 +508,12 @@ class AuthSignInViewModel @AssistedInject constructor(
             signInUseCase(SignInCredentials.Apple(idToken))
                 .onSuccess {
                     setState { copy(isLoading = false) }
-                    sendEffect(ShowToast(UiText.StringResource(R.string.msg_sign_in_success), isError = false))
+                    sendEffect(
+                        ShowToast(
+                            UiText.StringResource(R.string.msg_sign_in_success),
+                            isError = false
+                        )
+                    )
                     sendEffect(AuthSignInEffect.NavigateHome)
                 }
                 .onFailure { error ->
@@ -536,7 +545,8 @@ class AuthSignInViewModel @AssistedInject constructor(
                     }
                 }
                 .onFailure { error ->
-                    val errorMsg = UiText.DynamicString(error.message ?: "Failed to get biometric challenge")
+                    val errorMsg =
+                        UiText.DynamicString(error.message ?: "Failed to get biometric challenge")
                     setState { copy(isLoading = false, generalError = errorMsg) }
                     sendEffect(ShowToast(errorMsg, isError = true))
                 }
@@ -553,7 +563,12 @@ class AuthSignInViewModel @AssistedInject constructor(
             signInUseCase(credentials)
                 .onSuccess {
                     setState { copy(isLoading = false) }
-                    sendEffect(ShowToast(UiText.StringResource(R.string.msg_sign_in_success), isError = false))
+                    sendEffect(
+                        ShowToast(
+                            UiText.StringResource(R.string.msg_sign_in_success),
+                            isError = false
+                        )
+                    )
                     sendEffect(AuthSignInEffect.NavigateHome)
                 }
                 .onFailure { error ->
@@ -626,10 +641,21 @@ class AuthSignInViewModel @AssistedInject constructor(
                             )
                         )
                     }
-                    sendEffect(ShowToast(UiText.StringResource(R.string.msg_sign_up_success), isError = false))
+                    sendEffect(
+                        ShowToast(
+                            UiText.StringResource(R.string.msg_sign_up_success),
+                            isError = false
+                        )
+                    )
                     if (!isEmail) {
                         // Phone sign up requires OTP verification (account is pending OTP)
-                        sendEffect(AuthSignInEffect.NavigateOTPScreen(destination))
+                        sendEffect(
+                            AuthSignInEffect.NavigateOTPScreen(
+                                form.toOtpNavKey(
+                                    fromOnboarding = fromOnboarding
+                                )
+                            )
+                        )
                     }
                 }
                 .onFailure { error ->
